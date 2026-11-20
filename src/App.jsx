@@ -5,8 +5,6 @@ import { AuthScreen } from './pages/AuthPages'
 import { WeddingSetup } from './pages/WeddingSetup'
 import { isSupabaseConfigured, supabase } from './services/supabaseClient'
 
-const dashboardNow = new Date()
-
 const providerImages = [
   'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=900&q=85',
   'https://images.unsplash.com/photo-1507504031003-b417219a0fde?auto=format&fit=crop&w=900&q=85',
@@ -125,6 +123,13 @@ function PageTitle({ eyebrow, title, action }) {
 }
 
 function Dashboard({ setActivePage, tasks, toggleTask, wedding, profile }) {
+  const [dashboardNow, setDashboardNow] = useState(() => new Date())
+
+  useEffect(() => {
+    const id = setInterval(() => setDashboardNow(new Date()), 60_000)
+    return () => clearInterval(id)
+  }, [])
+
   const upcoming = tasks.filter((task) => task.status !== 'done').slice(0, 3)
   const greetingName = profile?.full_name?.trim() || 'vous'
   const weddingDate = wedding?.wedding_date ? new Date(`${wedding.wedding_date}T12:00:00`) : null

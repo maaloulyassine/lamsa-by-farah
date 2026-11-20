@@ -69,7 +69,7 @@ function App() {
   const toggleTask = (id) => setTasks((items) => items.map((task) => task.id === id ? { ...task, status: task.status === 'done' ? 'todo' : 'done' } : task))
 
   if (!user && (authMode || sessionExpired)) {
-    return <AuthScreen initialMode="signin" onBack={() => setAuthMode(null)} />
+    return <AuthScreen initialMode="signin" onBack={() => setAuthMode(null)} expired={sessionExpired} />
   }
 
   if (!user) return <Welcome onStart={() => setAuthMode('signup')} onSignIn={() => setAuthMode('signin')} />

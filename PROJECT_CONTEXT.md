@@ -83,7 +83,7 @@ Phase 1 foundations are complete:
 
 ## Phase status
 
-**Current phase: Phase 3 — Supabase — completed.**
+**Current phase: Phase 3 — Supabase — validation follow-up pending.**
 
 Actual Phase 1 validation:
 
@@ -106,7 +106,7 @@ Actual Phase 2 validation:
 - Phase 1 navigation and layout passed manual smoke testing without regressions.
 - The installed environment emitted a Node compatibility warning with Node `20.15.0`; Vite requires Node `20.19+` or `22.12+`. GitHub Actions uses Node `20.19.0`.
 
-**Next phase: Phase 4 — Product functionality.** Do not begin it unless explicitly approved.
+**Next phase: Phase 4 — Product functionality, blocked until final Phase 3 sign-off.**
 
 ## Remaining work and future phases
 

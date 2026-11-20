@@ -72,5 +72,13 @@
 - Secret scan found no `service_role` key in `src/`, `.env`, build output, or committed configuration; only explanatory text remains in `.env.example`.
 - Frontend lint/build passed with existing non-blocking hook/purity warnings.
 - The service worker remains static-only and explicitly treats Supabase domains as network-only.
-- Phase 3 is complete. Phase 4 — Product functionality has not started.
+- Phase 3 implementation and core RLS/seed validation are complete, but formal sign-off remains pending.
+- Follow-up pending: expired-session browser UX validation, production visual-regression sign-off, live SW local-origin bypass confirmation, and correction of any remaining preview/runtime defect.
+- Follow-up fixed: Git repository initialized; .gitignore now excludes `.env`, `dist`, node modules, Supabase temp/branch data, logs, and OS metadata.
+- Follow-up fixed: Phase 3 React lint warnings were resolved and `npm run lint` is clean.
+- Follow-up fixed: auth context and hook split into separate files; `refreshWedding` memoized; render-time Date calls memoized; loading state initialization moved out of data-loading effects.
+- Follow-up validated: sign-up created a user with no wedding and browser-routed it to `WeddingSetup`.
+- Follow-up validated: expired browser token was rejected with 401, local auth storage was cleared, private widgets were hidden, and Sign-in screen was rendered.
+- Follow-up validated: Welcome, Dashboard, Planning, Budget, Services, Favorites, and Profile rendered at 390px and desktop widths.
+- Follow-up infrastructure: Phase 3 baseline and follow-up commits are expected to remain on separate Git commit boundaries.
 

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '../context/useAuth'
 
-export function AuthScreen({ initialMode = 'signin', onBack }) {
+export function AuthScreen({ initialMode = 'signin', onBack, expired = false }) {
   const { signIn, signUp } = useAuth()
   const [mode, setMode] = useState(initialMode)
   const [fullName, setFullName] = useState('')
@@ -43,6 +43,7 @@ export function AuthScreen({ initialMode = 'signin', onBack }) {
         <div className="brand brand-auth"><span className="brand-mark">♡</span><span>LAMSA <em>by Farah</em></span></div>
         <h1>{mode === 'signup' ? 'Créer votre compte' : 'Bienvenue'}</h1>
         <p className="auth-intro">{mode === 'signup' ? 'Commencez à organiser votre mariage.' : 'Retrouvez votre espace mariage.'}</p>
+        {expired && <p className="auth-message error">Votre session a expiré. Veuillez vous reconnecter.</p>}
         <form onSubmit={submit}>
           {mode === 'signup' && (
             <>

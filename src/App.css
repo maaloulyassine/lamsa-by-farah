@@ -410,3 +410,14 @@ h3 { font-size: 14px; margin-bottom: 0; }
 .provider-rating-note { margin: -4px 0 0; color: var(--muted); font-size: 11px; font-style: italic; }
 
 .provider-phone-missing { margin: 0; color: var(--muted); font-size: 13px; }
+
+/* ===== Phase 6.7 — Google Maps link + category illustrations ===== */
+.provider-maps-link { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; min-height: 44px; border-radius: 8px; background: var(--color-info-bg, #eff6ff); color: var(--color-info, #2563eb); text-decoration: none; font-weight: 500; justify-self: start; margin-top: 6px; }
+.provider-contact-links a.provider-maps-link { color: var(--color-info, #2563eb); }
+.provider-maps-link:hover { background: #dbeafe; }
+.provider-cover-illustration { position: relative; }
+.provider-cover-illustration img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .25s ease; filter: saturate(.9); }
+.provider-cover-illustration.is-loaded img { opacity: 1; }
+.provider-illustration-badge { position: absolute; top: 10px; left: 10px; padding: 3px 8px; border-radius: 999px; background: rgba(30, 22, 18, .62); color: #fff; font-size: 10px; letter-spacing: .2px; line-height: 1.4; }
+.provider-illustration-icon { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; background: rgba(255, 255, 255, .28); color: rgba(255, 255, 255, .92); backdrop-filter: blur(2px); }
+.provider-detail-cover-wrap .provider-illustration-badge { top: 14px; left: 14px; font-size: 11px; }

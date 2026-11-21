@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { getCategoryImage } from '../../utils/categoryImages'
 import { formatRating, formatTndRange } from '../../utils/format'
 
 const categoryPaths = {
@@ -19,11 +21,30 @@ export function CategoryIcon({ name, size = 18 }) {
   )
 }
 
-// Cover image when provided; otherwise a gradient placeholder with the category icon
-// (no stock venue photos on fictitious providers — spec §8).
+// Cover: the provider's own cover_image_url when set; otherwise the category illustration
+// (free stock, always labelled "Photo d'illustration" — it is not a photo of the provider);
+// otherwise (missing/failed image) the gradient placeholder with the category icon.
 export function ProviderCover({ provider, iconSize = 40, className = '' }) {
+  const illustration = getCategoryImage(provider.category?.slug)
+  const [status, setStatus] = useState('loading') // loading | loaded | failed
   if (provider.cover_image_url) {
     return <div className={`provider-cover ${className}`}><img src={provider.cover_image_url} alt="" loading="lazy" /></div>
+  }
+  if (illustration && status !== 'failed') {
+    // Gradient + icon stay visible until the illustration has really loaded; the
+    // "Photo d'illustration" badge only appears on a loaded image.
+    return (
+      <div className={`provider-cover provider-cover-illustration provider-cover-placeholder ${status === 'loaded' ? 'is-loaded' : ''} ${className}`}>
+        {status !== 'loaded' && <CategoryIcon name={provider.category?.icon} size={iconSize} />}
+        <img src={illustration} alt="" loading="lazy" onLoad={() => setStatus('loaded')} onError={() => setStatus('failed')} />
+        {status === 'loaded' && (
+          <>
+            <span className="provider-illustration-badge">Photo d'illustration</span>
+            <span className="provider-illustration-icon" aria-hidden="true"><CategoryIcon name={provider.category?.icon} size={Math.round(iconSize * 0.8)} /></span>
+          </>
+        )}
+      </div>
+    )
   }
   return (
     <div className={`provider-cover provider-cover-placeholder ${className}`} aria-hidden="true">

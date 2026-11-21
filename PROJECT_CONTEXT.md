@@ -214,6 +214,13 @@ The MVP is deployed and publicly accessible.
 - Price, rating and sort controls removed from the catalogue (search, category, governorate and clear remain); `listProviders` filters by category and governorate and orders by name.
 - Cloud seeding note: `db push --include-seed` only recorded the new seed hash, so the seed was run with `npx supabase db query --remote --file supabase/seed.sql --yes`.
 
+### Phase 6.7 — Google Maps links + category illustrations — complete
+
+- Provider detail: "📍 Voir sur Google Maps" (Google Maps search URL: name + city + governorate name, governorate omitted when equal to the city; new tab, 44 px).
+- `public/images/categories/<slug>.webp`: 10 Unsplash illustrations (one per category, ≤ 100 KB each, 720 KB total), mapped by `src/utils/categoryImages.js` with Vite's `BASE_URL` prefix.
+- `ProviderCover`: provider `cover_image_url` first, then the category illustration with a "Photo d'illustration" badge and the category icon (badge shown only once the image has loaded), then the gradient placeholder if the image is missing or fails.
+- Images are same-origin static assets outside the service-worker precache (network-only); `lamsa-v1` still holds 13 entries. No migration or seed change.
+
 ### Phase 5 — Quality and delivery
 
 - Run focused functional, responsive, accessibility, security, and RLS validation.
@@ -235,6 +242,7 @@ The MVP is deployed and publicly accessible.
 
 ## Known issues and technical decisions
 
+- Provider cards show category illustration photos (from Unsplash, free commercial license) with a 'Photo d'illustration' badge. These are NOT photos of the real providers. The 'Voir sur Google Maps' link on each detail page opens the real venue on Google Maps. Real provider photos via Google Places API deferred to a future phase.
 - The Profile header link “Modifier mon profil” is also an inactive placeholder (pre-existing since Phase 1), in addition to the two Profile menu items listed below; same Phase 5 decision applies.
 - Contact request statuses `sent` and `closed` are set from the Phase 6 admin screen (post-MVP bonus) by users promoted with `app_metadata.is_admin`; without a promoted admin, every request stays “En attente”.
 - Column guard blocks content edits from service_role and Dashboard SQL when auth.uid() is NULL (it treats any non-owner as an admin). Correct security behavior — admins should never modify client content; status-only updates still work. For manual fixes: `ALTER TABLE contact_requests DISABLE TRIGGER contact_requests_admin_column_guard;` → `UPDATE …;` → `ALTER TABLE contact_requests ENABLE TRIGGER contact_requests_admin_column_guard;`.

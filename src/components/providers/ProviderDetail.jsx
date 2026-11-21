@@ -9,6 +9,14 @@ function galleryUrls(gallery) {
   return gallery.map((item) => (typeof item === 'string' ? item : item?.url)).filter((url) => typeof url === 'string' && url.startsWith('https://'))
 }
 
+// Google Maps search (no API key): name + city + governorate name (governorate is a joined object).
+function mapsSearchUrl(provider) {
+  const governorate = provider.governorate?.name
+  const parts = [provider.name, provider.city, governorate && governorate !== provider.city ? governorate : null]
+  const query = parts.filter(Boolean).join(' ')
+  return `https://www.google.com/maps/search/${encodeURIComponent(query)}`
+}
+
 function externalUrl(url) {
   return /^https?:\/\//i.test(url) ? url : `https://${url}`
 }
@@ -109,6 +117,9 @@ export function ProviderDetail({ providerId, wedding, userId, onBack, onSent, ba
               : <p className="provider-phone-missing">Téléphone non renseigné</p>}
             {provider.website && <a href={externalUrl(provider.website)} target="_blank" rel="noopener noreferrer">Site web</a>}
             {provider.social_url && <a href={externalUrl(provider.social_url)} target="_blank" rel="noopener noreferrer">Réseaux sociaux</a>}
+            <a href={mapsSearchUrl(provider)} target="_blank" rel="noopener noreferrer" className="provider-maps-link">
+              📍 Voir sur Google Maps
+            </a>
           </div>
         </div>
 

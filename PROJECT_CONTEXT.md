@@ -26,7 +26,7 @@ The complete approved product and technical specification is in [`Lamsa_by_Farah
 
 ## Technology and technical choices
 
-- Frontend: React 19 + Vite 8 + JavaScript.
+- Frontend: React 19 + Vite 7 (Rollup) + JavaScript. Vite 8 / rolldown was dropped because it produced a broken production bundle (see Known issues).
 - Styling: custom CSS with centralized variables; no UI framework.
 - Routing/navigation for the current prototype: local React state, with HashRouter still available as a future deployment decision if route URLs become necessary.
 - Data in Phase 1: local in-memory demonstration data only.
@@ -173,6 +173,9 @@ Actual Phase 2 validation:
 
 ## Known issues and technical decisions
 
+- Vite/rolldown production build was broken from v0.3-supabase onward: the bundle contained corrupted preload markers (`void 0<hash>`), causing a blank page in the browser. Fixed in the `fix(build)` commit that follows `v0.4b-budget` by Vite downgrade to 7.x (`vite@^7.3.8`, `@vitejs/plugin-react@^5.2.0`). Future Vite major upgrades must include a manual preview smoke test, not just `npm run build` exit 0.
+- `@rolldown/binding-win32-x64-msvc` remains in devDependencies from the Vite 8 period; it is unused with Vite 7 and can be removed in Phase 5 cleanup.
+- Offline reload renders the app shell, but the auth screen then shows the raw message “TypeError: Failed to fetch” from `AuthContext` (pre-existing; French copy deferred to Phase 5).
 - Delete uses native window.confirm (same as 4a tasks). Polish to styled modal in a future phase.
 - Budget taxonomy reuses the 10 provider categories. Items like invitations, jewelry, honeymoon have no dedicated category and must be logged under an existing category with a note. Dedicated budget taxonomy deferred to a future phase.
 - The flower icon is used 3× in the category seed (`coiffure-maquillage`, `decoration`, `fleurs`) — cosmetic, differentiate in a future phase.

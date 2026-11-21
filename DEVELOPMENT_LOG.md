@@ -148,3 +148,11 @@
 - Deviations / known issues recorded: `total_budget` edited from the Budget page; native `window.confirm` delete (same as 4a); 10 provider categories reused as the budget taxonomy; flower icon used 3× in the seed; the Intl currency gap is U+00A0.
 - No migration, RLS, or service-worker change.
 - 4c has not started.
+
+### fix(build) — broken production bundle (Vite 8 / rolldown)
+
+- What was broken: `npm run build` exited 0, but the production bundle contained 5 corrupted dynamic-import preload markers (`void 0<32-hex hash>`, from supabase-js lazy imports). The browser threw `SyntaxError: Invalid or unexpected token` and the app rendered a blank page; the service worker never registered.
+- When it started: with supabase-js in Phase 3 (`v0.3-supabase`). It was confirmed on a clean `v0.4b-budget` worktree build. Phase 2 preview validation predates supabase-js. The 4a/4b validations used the dev server, which hid the defect.
+- Root-cause isolation: the custom PWA plugin is not involved (same output without it); `build.modulePreload: false` does not help; Node 20.19.0 and 22.12.0 (via fnm) produce a byte-identical broken bundle (Vite 8.3.8 / rolldown 1.2.19).
+- Fix: downgraded to `vite@^7.3.8` (Rollup) with `@vitejs/plugin-react@^5.2.0` (6.x requires Vite 8). No `vite.config.js` or plugin change was needed. CI already pins Node 20.19.0.
+- Verification (preview loaded in Chromium, not just build exit 0): 0 corrupted markers and the bundle parses; Welcome screen rendered; zero console messages while online; Dashboard, Services (20 providers), provider detail and Budget rendered; service worker activated and controlling with scope `/lamsa-by-farah/`; `lamsa-v1` holds 13 same-origin static URLs and 0 Supabase/Unsplash/external-font entries; offline reload renders the app shell. The dev server and `npm run lint` work on Vite 7.

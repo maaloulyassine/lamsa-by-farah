@@ -83,7 +83,7 @@ Phase 1 foundations are complete:
 
 ## Phase status
 
-**Current phase: Phase 4 — Product functionality — fully complete (4a planner, 4b budget, 4c providers, 4d favorites, 4e contact requests). Phase 5 has not started.**
+**Current phase: Phase 4 — Product functionality — complete and live in production (4a planner, 4b budget, 4c providers, 4d favorites, 4e contact requests; tag `v1.0.0-mvp`). Phase 5 has not started.**
 
 Actual Phase 1 validation:
 
@@ -107,6 +107,30 @@ Actual Phase 2 validation:
 - The installed environment emitted a Node compatibility warning with Node `20.15.0`; Vite requires Node `20.19+` or `22.12+`. GitHub Actions uses Node `20.19.0`.
 
 **Next phase: Phase 5 — Quality and delivery (not started).**
+
+### Phase 4 — Product functionality — COMPLETE (live)
+
+The MVP is deployed and publicly accessible.
+
+**Production environment:**
+- Live URL: https://maaloulyassine.github.io/lamsa-by-farah/
+- Hosting: GitHub Pages via GitHub Actions (`.github/workflows/deploy.yml`, triggered on `master` and manually)
+- Backend: Supabase cloud project `atbuzxsftvtnoneubgzp` (eu-west-1, Postgres 17)
+- CDN: GitHub Pages serves the static PWA
+
+**Deployed state:**
+- All Phase 4a–4e features live and verified end-to-end
+- Cloud database seeded: 24 governorates, 10 categories, 20 demo providers
+- Cloud migrations: `20261120000001` → `20261121000005` (5, including the `phase4f_grants` migration)
+- RLS verified in production: anonymous gets 42501 on all private tables; cross-user isolation confirmed with two test accounts
+- Service worker active at `/lamsa-by-farah/` scope; cache `lamsa-v1` contains only static assets
+
+**Phase 5 fixes needed before considering the MVP "polished":**
+- English auth error messages (Supabase raw text shown to users)
+- Node 20 → Node 24 GitHub Actions upgrade (non-blocking warning)
+- `anon` and `authenticated` still hold TRUNCATE from project defaults (not exploitable via API, but cleaner to revoke)
+- `service_role` lacks full grants on the public tables (no current code uses it; will matter if admin scripts are added)
+- Future tables will need their own grant migration — cloud does not grant automatically (unlike local Supabase)
 
 ## Remaining work and future phases
 

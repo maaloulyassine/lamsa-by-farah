@@ -224,3 +224,19 @@
   - Also verified: Profile items Budget / Favoris / Demandes open their screens while Mon projet / Paramètres stay inactive. With a provider deactivated in the local DB, the card shows “Prestataire indisponible” (restored afterwards; 20/20 active).
 - Lint: 0 warnings, 0 errors.
 - Phase 4 is fully complete. Phase 5 has not started.
+
+### 2026-11-21 — Production deployment (MVP live)
+
+- Pushed master branch to GitHub: https://github.com/maaloulyassine/lamsa-by-farah
+- Enabled GitHub Pages (Source: GitHub Actions)
+- Configured 2 repository secrets: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY
+- Configured Supabase Auth URLs: Site URL + 2 Redirect URLs (prod + localhost)
+- Linked Supabase cloud project (atbuzxsftvtnoneubgzp) via CLI
+- Pushed 4 migrations + seed to cloud via `supabase db push --remote --include-seed` (CLI 3.2 targets the local stack unless `--remote` is passed)
+- First workflow run failed at "Configure Pages" (Pages not yet enabled); after enabling Pages the manual run 44911529474 succeeded
+- Live site at https://maaloulyassine.github.io/lamsa-by-farah/ initially showed "permission denied for table weddings" — caused by newer Supabase cloud projects not auto-granting base privileges to `anon`/`authenticated` on tables created via CLI (local Supabase has ALTER DEFAULT PRIVILEGES that cloud does not; cloud tables only had TRUNCATE/REFERENCES/TRIGGER/MAINTAIN for those roles)
+- Fixed in commit 208c507 with explicit GRANT migration 20261121000005_phase4f_grants.sql (also applied locally via `supabase db reset`, full UI flow re-verified with 0 errors)
+- Verified end-to-end on the live site: sign-up, wedding setup, Dashboard, planning generation, personal task creation, expense creation (budget 60 % / 6 000 TND restant), provider catalogue (20 results), favorite, contact request, my-requests screen — 0 API errors, 0 console errors; rows confirmed in the cloud DB. Task/expense edit and delete and the combined provider filters were verified locally in 4a–4c, not re-run live.
+- Verified RLS in production: anonymous 42501 on private tables; two-user isolation confirmed (User B sees 0 rows of User A; bulk UPDATE/DELETE affect 0 rows; provider insert blocked by RLS)
+- Deployment workflow run 44913030887: success
+- Test accounts `lamsa-deploy-check-*@example.test` remain in the cloud project (removal and Supabase token revocation left to the project owner)

@@ -3,17 +3,11 @@ import './App.css'
 import { useAuth } from './context/useAuth'
 import { AuthScreen } from './pages/AuthPages'
 import { WeddingSetup } from './pages/WeddingSetup'
-import { isSupabaseConfigured, supabase } from './services/supabaseClient'
 import { PlanningPage } from './components/planner/PlanningPage'
 import { listWeddingTasks } from './services/tasksService'
 import { BudgetPage } from './components/budget/BudgetPage'
+import { ProvidersPage } from './components/providers/ProvidersPage'
 import { formatTnd } from './utils/format'
-
-const providerImages = [
-  'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=900&q=85',
-  'https://images.unsplash.com/photo-1507504031003-b417219a0fde?auto=format&fit=crop&w=900&q=85',
-  'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=900&q=85',
-]
 
 const categories = [
   ['Salle de mariage', 'building', 'Salles de mariage'],
@@ -57,8 +51,6 @@ function App() {
   const { user, profile, wedding, loading, error, sessionExpired, refreshWedding } = useAuth()
   const [authMode, setAuthMode] = useState(null)
   const [activePage, setActivePage] = useState('home')
-  const [selectedCategory, setSelectedCategory] = useState('Toutes')
-  const [search, setSearch] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
 
 
@@ -97,7 +89,7 @@ function App() {
           {activePage === 'home' && <Dashboard setActivePage={setActivePage} wedding={wedding} profile={profile} />}
           {activePage === 'planning' && <PlanningPage wedding={wedding} />}
           {activePage === 'budget' && <BudgetPage wedding={wedding} refreshWedding={refreshWedding} />}
-          {activePage === 'services' && <Services search={search} setSearch={setSearch} selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} />}
+          {activePage === 'services' && <ProvidersPage wedding={wedding} userId={user?.id} />}
           {activePage === 'favorites' && <Favorites setActivePage={setActivePage} />}
           {activePage === 'profile' && <Profile setActivePage={setActivePage} />}
         </main>
@@ -157,40 +149,6 @@ function Dashboard({ setActivePage, wedding, profile }) {
 
 function TaskRow({ task, onToggle }) {
   return <div className={`task-row ${task.status === 'done' ? 'completed' : ''}`}><button className="check-button" onClick={onToggle} aria-label={`Marquer ${task.title}`}>{task.status === 'done' && <Icon name="check" size={14} />}</button><span className="task-icon"><Icon name={task.icon || 'check'} size={17} /></span><div><strong>{task.title}</strong><small>{new Date(`${task.date}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</small></div></div>
-}
-
-function Services({ search, setSearch, selectedCategory, setSelectedCategory }) {
-  const [providers, setProviders] = useState([])
-  const [categories, setCategories] = useState([])
-  const [loading, setLoading] = useState(isSupabaseConfigured)
-  const [error, setError] = useState(isSupabaseConfigured ? '' : 'Supabase n’est pas configuré.')
-
-  useEffect(() => {
-    if (!isSupabaseConfigured || !supabase) return
-
-    Promise.all([
-      supabase.from('providers').select('*, categories(name,slug), governorates(name,slug)').eq('is_active', true).order('name'),
-      supabase.from('categories').select('id,name,slug').eq('is_active', true).order('sort_order'),
-    ]).then(([providerResult, categoryResult]) => {
-      if (providerResult.error) setError(providerResult.error.message)
-      if (categoryResult.error) setError(categoryResult.error.message)
-      setProviders(providerResult.data ?? [])
-      setCategories(categoryResult.data ?? [])
-      setLoading(false)
-    })
-  }, [])
-
-  const filtered = providers.filter((provider) => {
-    const matchesCategory = selectedCategory === 'Toutes' || provider.categories?.slug === selectedCategory
-    const matchesSearch = `${provider.name} ${provider.city}`.toLowerCase().includes(search.toLowerCase())
-    return matchesCategory && matchesSearch
-  })
-
-  return <><PageTitle eyebrow="Tout pour votre grand jour" title="Trouver un service" action={<button className="filter-button"><Icon name="sliders" size={18} /> Filtres</button>} /><div className="search-bar"><Icon name="search" size={19} /><input placeholder="Rechercher un service ou une ville..." value={search} onChange={(event) => setSearch(event.target.value)} /><button>⌘ K</button></div>{loading ? <div className="loading-state">Chargement des services...</div> : error ? <div className="error-state"><h3>Les services n’ont pas pu être chargés</h3><p>{error}</p><button className="text-button" onClick={() => window.location.reload()}>Réessayer</button></div> : <><div className="category-scroller"><button className={selectedCategory === 'Toutes' ? 'active' : ''} onClick={() => setSelectedCategory('Toutes')}>Toutes</button>{categories.map((category) => <button key={category.id} className={selectedCategory === category.slug ? 'active' : ''} onClick={() => setSelectedCategory(category.slug)}>{category.name}</button>)}</div><div className="section-heading"><h2>Nos recommandations</h2><span>{filtered.length} résultat{filtered.length > 1 ? 's' : ''}</span></div>{filtered.length ? <div className="provider-grid">{filtered.map((provider) => <ProviderCard key={provider.id} provider={{ id: provider.id, name: provider.name, city: provider.city, governorate: provider.governorates?.name, rating: provider.rating, reviews: provider.review_count, price: provider.price_from, image: provider.cover_image_url || providerImages[0], description: provider.description, isDemo: provider.is_demo }} favorite={false} onFavorite={() => {}} />)}</div> : <div className="empty-state"><Icon name="search" size={28} /><h3>Aucun service trouvé</h3><p>Essayez une autre recherche ou catégorie.</p></div>}</>}</>
-}
-
-function ProviderCard({ provider, favorite, onFavorite }) {
-  return <article className="provider-card"><div className="provider-image"><img src={provider.image} alt="" /><span className="provider-location"><Icon name="map" size={12} /> {provider.governorate || provider.city}</span>{provider.isDemo && <span className="demo-badge">Exemple de démonstration</span>}<button className={`favorite-button ${favorite ? 'is-favorite' : ''}`} onClick={onFavorite} aria-label="Ajouter aux favoris"><Icon name="heart" size={18} /></button></div><div className="provider-body"><div className="provider-title"><h3>{provider.name}</h3><span><b>★</b> {provider.rating} <small>({provider.reviews})</small></span></div><p>{provider.description}</p><div className="provider-footer"><strong>À partir de {formatTnd(provider.price)}</strong><button className="small-arrow"><Icon name="arrow" size={14} /></button></div></div></article>
 }
 
 function Favorites({ setActivePage }) {

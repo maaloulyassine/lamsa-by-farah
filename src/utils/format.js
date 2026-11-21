@@ -34,3 +34,20 @@ export function mutationErrorMessage(error, fallback) {
   if (/failed to fetch|network/i.test(message)) return 'Connexion impossible. Vérifiez votre réseau puis réessayez.'
   return message
 }
+
+// Same fr-FR grouping as tndFormatter (U+202F), without the currency symbol.
+const tndAmountFormatter = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })
+
+// Indicative provider price: "5 000 – 8 000 TND" (U+2013), "À partir de 5 000 TND", or "Tarif sur demande".
+export function formatTndRange(from, to) {
+  const hasFrom = from !== null && from !== undefined && from !== ''
+  const hasTo = to !== null && to !== undefined && to !== ''
+  if (hasFrom && hasTo && Number(to) !== Number(from)) return `${tndAmountFormatter.format(Number(from))} – ${formatTnd(to)}`
+  if (hasFrom) return `À partir de ${formatTnd(from)}`
+  if (hasTo) return `Jusqu’à ${formatTnd(to)}`
+  return 'Tarif sur demande'
+}
+
+export function formatRating(rating) {
+  return Number(rating).toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+}

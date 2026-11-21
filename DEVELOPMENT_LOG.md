@@ -156,3 +156,28 @@
 - Root-cause isolation: the custom PWA plugin is not involved (same output without it); `build.modulePreload: false` does not help; Node 20.19.0 and 22.12.0 (via fnm) produce a byte-identical broken bundle (Vite 8.3.8 / rolldown 1.2.19).
 - Fix: downgraded to `vite@^7.3.8` (Rollup) with `@vitejs/plugin-react@^5.2.0` (6.x requires Vite 8). No `vite.config.js` or plugin change was needed. CI already pins Node 20.19.0.
 - Verification (preview loaded in Chromium, not just build exit 0): 0 corrupted markers and the bundle parses; Welcome screen rendered; zero console messages while online; Dashboard, Services (20 providers), provider detail and Budget rendered; service worker activated and controlling with scope `/lamsa-by-farah/`; `lamsa-v1` holds 13 same-origin static URLs and 0 Supabase/Unsplash/external-font entries; offline reload renders the app shell. The dev server and `npm run lint` work on Vite 7.
+
+### Phase 4c — Provider filters, detail, and contact requests
+
+- Created: `src/services/providersService.js`, `src/services/contactRequestsService.js`, `src/components/providers/{ProvidersPage,ProviderFilters,ProviderCard,ProviderDetail,ContactRequestModal}.jsx`.
+- Modified: `src/App.jsx` (inline Services, ProviderCard, `providerImages` and the inline Supabase query removed; ProvidersPage wired); `src/App.css` (provider list/filter/detail/modal styles, `.provider-demo-badge`, mobile rules); `src/utils/format.js` (`formatTndRange`, `formatRating`).
+- Removed the dead buttons (heart, “Filtres”, “⌘ K”) per §11; error retry re-runs the query instead of reloading the page.
+- Deviations: no availability filter (free-text `availability_notes`, §8); no favorites until 4d; `createContactRequest` also takes `user_id` (approved).
+- Approved check substitutions caused by seed data: 4 → price 2000–5000; 6 → search “Jasmin”; 7 → positive Salles+Ariana+6500 and negative Salles+Tunis+6000; 11 → “Non renseignée” for NULL availability.
+- Check 16 was delayed by the pre-existing production build defect and completed after the fix in `7d42dbe`. Checks 1–15 were re-run on Vite 7 with identical results.
+- Validation (Playwright, local Supabase, fresh userA/userB; DOM compared with SQL):
+  1. 20 active demo providers (SQL 20 = DOM 20), 20 “Exemple de démonstration” badges.
+  2. Salles → Salle Élégance, Salle Jasmin. 3. Tunis → 7, same names as SQL.
+  4. 2000–5000 → Capitole Vidéo, Rêve Décor. 5. ≥ 4,5 ★ → 20 (seed min 4.5); ≥ 5 ★ → 0 + empty state.
+  6. “Jasmin” → Jasmine Cakes, Salle Jasmin; “Sousse” → 5 (city match, equals SQL).
+  7. Salles+Ariana+6500 → Salle Jasmin; Salles+Tunis+6000 → 0 + “Aucun prestataire ne correspond à vos critères.” + CTA.
+  8. Clear → 20. 9. Price asc Lina Beauty / Nour Coiffure / Lys Boutique; rating desc Syma Photo / Maison Elyssa / Rêve Décor (match SQL ORDER BY).
+  10. Bizerte → empty message + CTA; CTA restores 20.
+  11. Detail shows badge, name, “Salles de mariage · Tunis · Tunis”, “4,8 ★ (120 avis)”, description, address, “Non renseignée” + disclaimer, “4 500 – 7 000 TND” (U+202F grouping, U+2013 dash, U+00A0 before TND).
+  12. Modal dialog/aria-modal/labelled, focus on textarea, §5 disclaimer (role=note) above submit, min-length and offline errors keep values, Esc returns focus; toast shown; SQL row `status=pending, wedding_date=2027-06-12`.
+  13. userB: no userA data on any page; REST 0 rows; SQL as userB (role authenticated + JWT claims) 0 rows.
+  14. Owner → `sent` 403; userB update 0 rows; insert `status=sent` 403; anon insert 401; row stays pending.
+  15. 390 px: one-column list (354px), collapsible filters, every control 44 px on list/detail/modal, scrollWidth 390, textarea 110 px.
+  16. No Phase 1 provider arrays, Unsplash provider fallback, dead buttons, `DT` or `is_urgent` in `src`; SQL `is_urgent` 0 rows. Production preview: SW activated and controlling, `lamsa-v1` = 13 same-origin static URLs, 0 Supabase / Unsplash / external fonts, offline reload renders the app shell.
+- Lint: 0 warnings, 0 errors, no suppressions. Build passes and its output was verified in the browser.
+- 4d has not started.

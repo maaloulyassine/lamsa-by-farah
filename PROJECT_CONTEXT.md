@@ -83,7 +83,7 @@ Phase 1 foundations are complete:
 
 ## Phase status
 
-**Current phase: Phase 4 — Product functionality. Sub-batches 4a (planner) and 4b (budget) complete; 4c has not started.**
+**Current phase: Phase 4 — Product functionality. Sub-batches 4a (planner), 4b (budget) and 4c (providers) complete; 4d (favorites) has not started.**
 
 Actual Phase 1 validation:
 
@@ -106,7 +106,7 @@ Actual Phase 2 validation:
 - Phase 1 navigation and layout passed manual smoke testing without regressions.
 - The installed environment emitted a Node compatibility warning with Node `20.15.0`; Vite requires Node `20.19+` or `22.12+`. GitHub Actions uses Node `20.19.0`.
 
-**Next phase: Phase 4 — sub-batch 4c (not started).**
+**Next phase: Phase 4 — sub-batch 4d, favorites (not started).**
 
 ## Remaining work and future phases
 
@@ -136,6 +136,11 @@ Actual Phase 2 validation:
 
 - Sub-batch 4a — deterministic planner and task CRUD: complete (tag `v0.4a-planner`).
 - Sub-batch 4b — persisted budget and expense CRUD: complete (tag `v0.4b-budget`).
+- 4c — Provider filters, detail, contact request (in progress → completed after validation). Favorites deferred to 4d.
+  - Completed and tagged `v0.4c-providers`. `src/services/providersService.js` (server-side category/governorate/price/rating filters and sort; client-side name/city search), `src/services/contactRequestsService.js`, `src/components/providers/` (ProvidersPage, ProviderFilters, ProviderCard, ProviderDetail, ContactRequestModal).
+  - Price filter semantics: `price_from >= min AND COALESCE(price_to, price_from) <= max`. Prices display as “5 000 – 8 000 TND”, “À partir de 5 000 TND” or “Tarif sur demande”.
+  - Contact requests insert `status='pending'` with `user_id` (NOT NULL, checked by RLS); the modal shows the spec §5 disclaimer.
+  - Phase 1 inline Services/ProviderCard, the Unsplash provider fallback, and the dead heart, “Filtres” and “⌘ K” buttons were removed. No migration, RLS, seed or service-worker change.
   - `src/components/budget/` (BudgetPage, ExpenseModal, BudgetEditModal), `src/services/expensesService.js`, `src/utils/format.js` (`formatTnd`, `parseTndAmount`, `mutationErrorMessage`).
   - Single ring card (budget total prévu, dépenses réelles payées, restant, % utilisé) plus a separate “Estimations planning (indicatif)” card summing `tasks.estimated_cost`, not deducted from the remaining amount.
   - Overspending whenever remaining < 0, including total budget = 0 with any expense; budget = 0 with no expense shows “Non défini”.
@@ -149,7 +154,7 @@ Actual Phase 2 validation:
 - Add complete monthly calendar behavior.
 - ~~Add expense CRUD and budget calculations including overspending.~~ Done in 4b.
 - Dashboard budget summary card (spec §4.3) — deferred to a small follow-up after 4b.
-- Complete combined provider filters and provider detail/contact flow.
+- ~~Complete combined provider filters and provider detail/contact flow.~~ Done in 4c (no availability filter, see Known issues).
 - Persist user-specific favorites.
 
 ### Phase 5 — Quality and delivery
@@ -173,7 +178,11 @@ Actual Phase 2 validation:
 
 ## Known issues and technical decisions
 
-- Vite/rolldown production build was broken from v0.3-supabase onward: the bundle contained corrupted preload markers (`void 0<hash>`), causing a blank page in the browser. Fixed in the `fix(build)` commit that follows `v0.4b-budget` by Vite downgrade to 7.x (`vite@^7.3.8`, `@vitejs/plugin-react@^5.2.0`). Future Vite major upgrades must include a manual preview smoke test, not just `npm run build` exit 0.
+- Le filtre de disponibilité prestataire n'est pas implémenté dans le MVP. Le champ `providers.availability_notes` est du texte libre et ne permet pas de répondre de manière fiable à « disponible à la date du mariage ? ». Inventer une disponibilité structurée violerait les règles de démonstration du cahier des charges (§8). Cette fonctionnalité est reportée à une phase future qui ajoutera un champ de disponibilité structuré.
+- Seed demo gaps (Phase 5 polish): the 20 demo providers have NULL availability_notes, phone, website, social_url, cover_image_url, and empty gallery. Cards use gradient placeholders + category icons. Provider detail shows « Non renseignée » for missing availability with the disclaimer. Enrich seed data in Phase 5.
+- Dashboard quick-tile categories are hardcoded Phase 1 tuples. Cosmetic — deferred to Phase 5 cleanup.
+- All 20 seeded providers have rating ≥ 4.5, so the 4.5 ★ filter excludes none in the current seed; filtering exclusion was verified at 5 ★ (0 results).
+- Vite/rolldown production build was broken from v0.3-supabase onward: the bundle contained corrupted preload markers (`void 0<hash>`), causing a blank page in the browser. Fixed in `7d42dbe` by Vite downgrade to 7.x (`vite@^7.3.8`, `@vitejs/plugin-react@^5.2.0`). Future Vite major upgrades must include a manual preview smoke test, not just `npm run build` exit 0.
 - `@rolldown/binding-win32-x64-msvc` remains in devDependencies from the Vite 8 period; it is unused with Vite 7 and can be removed in Phase 5 cleanup.
 - Offline reload renders the app shell, but the auth screen then shows the raw message “TypeError: Failed to fetch” from `AuthContext` (pre-existing; French copy deferred to Phase 5).
 - Delete uses native window.confirm (same as 4a tasks). Polish to styled modal in a future phase.

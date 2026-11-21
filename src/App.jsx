@@ -7,6 +7,7 @@ import { PlanningPage } from './components/planner/PlanningPage'
 import { listWeddingTasks } from './services/tasksService'
 import { BudgetPage } from './components/budget/BudgetPage'
 import { ProvidersPage } from './components/providers/ProvidersPage'
+import { FavoritesPage } from './components/favorites/FavoritesPage'
 import { formatTnd } from './utils/format'
 
 const categories = [
@@ -90,7 +91,7 @@ function App() {
           {activePage === 'planning' && <PlanningPage wedding={wedding} />}
           {activePage === 'budget' && <BudgetPage wedding={wedding} refreshWedding={refreshWedding} />}
           {activePage === 'services' && <ProvidersPage wedding={wedding} userId={user?.id} />}
-          {activePage === 'favorites' && <Favorites setActivePage={setActivePage} />}
+          {activePage === 'favorites' && <FavoritesPage wedding={wedding} userId={user?.id} onDiscover={() => setActivePage('services')} />}
           {activePage === 'profile' && <Profile setActivePage={setActivePage} />}
         </main>
       </div>
@@ -151,17 +152,13 @@ function TaskRow({ task, onToggle }) {
   return <div className={`task-row ${task.status === 'done' ? 'completed' : ''}`}><button className="check-button" onClick={onToggle} aria-label={`Marquer ${task.title}`}>{task.status === 'done' && <Icon name="check" size={14} />}</button><span className="task-icon"><Icon name={task.icon || 'check'} size={17} /></span><div><strong>{task.title}</strong><small>{new Date(`${task.date}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</small></div></div>
 }
 
-function Favorites({ setActivePage }) {
-  return <><PageTitle eyebrow="Fonctionnalité à venir" title="Mes favoris" /><div className="empty-state phase-placeholder"><Icon name="heart" size={28} /><h3>Vos favoris seront disponibles prochainement</h3><p>Les favoris locaux ne sont pas sauvegardés.</p><button className="primary-button" onClick={() => setActivePage('services')}>Découvrir les services</button></div></>
-}
-
 function Profile({ setActivePage }) {
   const { signOut, profile, user, wedding } = useAuth()
   const initial = profile?.full_name?.trim()?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'F'
   const weddingDate = wedding?.wedding_date
     ? new Date(`${wedding.wedding_date}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
     : 'Projet à compléter'
-  return <><PageTitle eyebrow="Votre espace personnel" title="Mon profil" /><section className="profile-header content-card"><div className="large-avatar">{initial}</div><div><h2>{profile?.full_name || 'Votre profil'}</h2><p>{user?.email}</p><button className="text-button">Modifier mon profil <Icon name="arrow" size={14} /></button></div></section><div className="profile-menu content-card">{[['calendar', 'Mon projet de mariage', weddingDate], ['wallet', 'Mon budget', formatTnd(wedding?.total_budget)], ['building', 'Mes services favoris', 'Phase suivante'], ['user', 'Paramètres', 'Préférences et sécurité']].map(([icon, label, meta], index) => <button key={label} onClick={() => index === 1 && setActivePage('budget')}><span className="profile-menu-icon"><Icon name={icon} size={19} /></span><span><strong>{label}</strong><small>{meta}</small></span><Icon name="chevron" size={17} /></button>)}</div><button className="logout-button" onClick={signOut}>Se déconnecter</button></>
+  return <><PageTitle eyebrow="Votre espace personnel" title="Mon profil" /><section className="profile-header content-card"><div className="large-avatar">{initial}</div><div><h2>{profile?.full_name || 'Votre profil'}</h2><p>{user?.email}</p><button className="text-button">Modifier mon profil <Icon name="arrow" size={14} /></button></div></section><div className="profile-menu content-card">{[['calendar', 'Mon projet de mariage', weddingDate], ['wallet', 'Mon budget', formatTnd(wedding?.total_budget)], ['heart', 'Mes services favoris', 'Vos prestataires enregistrés'], ['user', 'Paramètres', 'Préférences et sécurité']].map(([icon, label, meta], index) => <button key={label} onClick={() => { if (index === 1) setActivePage('budget'); if (index === 2) setActivePage('favorites') }}><span className="profile-menu-icon"><Icon name={icon} size={19} /></span><span><strong>{label}</strong><small>{meta}</small></span><Icon name="chevron" size={17} /></button>)}</div><button className="logout-button" onClick={signOut}>Se déconnecter</button></>
 }
 
 export default App

@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { listFavoriteIds } from '../../services/favoritesService'
 import { listFilterOptions, listProviders } from '../../services/providersService'
+import { useFavoriteToggle } from '../favorites/useFavoriteToggle'
 import { ProviderCard } from './ProviderCard'
 import { ProviderDetail } from './ProviderDetail'
 import { ProviderFilters } from './ProviderFilters'
@@ -54,6 +56,9 @@ export function ProvidersPage({ wedding, userId }) {
   const requestId = useRef(0)
   const lastOpened = useRef(null)
   const listScrollY = useRef(0)
+  const { favoriteIds, setFavoriteIds, pendingIds, toggleFavorite, toggleError, clearToggleError } = useFavoriteToggle()
+  const [favoritesLoading, setFavoritesLoading] = useState(true)
+  const [favoritesError, setFavoritesError] = useState('')
 
   const { categoryId, governorateId, priceMin, priceMax, ratingMin, sort } = filters
   const priceError = getPriceError(filters)
@@ -76,6 +81,34 @@ export function ProvidersPage({ wedding, userId }) {
     listFilterOptions().then((results) => { if (active) applyOptions(results) })
     return () => { active = false }
   }, [applyOptions])
+
+  // Favorite ids are fetched fresh on every mount (no cross-screen cache).
+  const applyFavoriteIds = useCallback(({ data, error }) => {
+    if (error) setFavoritesError('Impossible de charger vos favoris.')
+    else {
+      setFavoritesError('')
+      setFavoriteIds(data)
+    }
+    setFavoritesLoading(false)
+  }, [setFavoriteIds])
+
+  useEffect(() => {
+    let active = true
+    listFavoriteIds().then((result) => { if (active) applyFavoriteIds(result) })
+    return () => { active = false }
+  }, [applyFavoriteIds])
+
+  const retryFavorites = async () => {
+    setFavoritesLoading(true)
+    applyFavoriteIds(await listFavoriteIds())
+  }
+
+  // Hearts stay disabled until the user's favorites are known, so a toggle never starts from a wrong state.
+  const favoriteProps = (id) => ({
+    isFavorite: favoriteIds.has(id),
+    favoritePending: favoritesLoading || Boolean(favoritesError) || pendingIds.has(id),
+    onToggleFavorite: toggleFavorite,
+  })
 
   const retryOptions = async () => {
     setOptionsLoading(true)
@@ -131,7 +164,13 @@ export function ProvidersPage({ wedding, userId }) {
     window.scrollTo(0, 0)
   }
 
-  const toast = success && <p className="success-banner" role="status" onAnimationEnd={() => setSuccess('')}>{success}</p>
+  const toast = (
+    <>
+      {success && <p className="success-banner" role="status" onAnimationEnd={() => setSuccess('')}>{success}</p>}
+      {toggleError && <div className="error-banner favorite-toast" role="alert"><span>{toggleError}</span><button type="button" onClick={clearToggleError}>Fermer</button></div>}
+      {favoritesError && <div className="error-banner" role="alert"><span>{favoritesError}</span><button type="button" onClick={retryFavorites}>Réessayer</button></div>}
+    </>
+  )
 
   if (selectedId) {
     return (
@@ -144,6 +183,7 @@ export function ProvidersPage({ wedding, userId }) {
           userId={userId}
           onBack={() => setSelectedId(null)}
           onSent={() => setSuccess(CONTACT_SUCCESS)}
+          {...favoriteProps(selectedId)}
         />
       </>
     )
@@ -166,7 +206,7 @@ export function ProvidersPage({ wedding, userId }) {
         </div>
       )
   } else {
-    listContent = <div className="provider-grid">{visibleProviders.map((provider) => <ProviderCard key={provider.id} provider={provider} onOpen={openProvider} />)}</div>
+    listContent = <div className="provider-grid">{visibleProviders.map((provider) => <ProviderCard key={provider.id} provider={provider} onOpen={openProvider} {...favoriteProps(provider.id)} />)}</div>
   }
 
   return (

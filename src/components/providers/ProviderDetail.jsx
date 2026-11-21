@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { getProviderById } from '../../services/providersService'
 import { formatRating, formatTndRange } from '../../utils/format'
 import { ContactRequestModal } from './ContactRequestModal'
-import { DemoBadge, ProviderCover } from './ProviderCard'
+import { DemoBadge, FavoriteButton, ProviderCover } from './ProviderCard'
 
 function galleryUrls(gallery) {
   if (!Array.isArray(gallery)) return []
@@ -13,7 +13,7 @@ function externalUrl(url) {
   return /^https?:\/\//i.test(url) ? url : `https://${url}`
 }
 
-export function ProviderDetail({ providerId, wedding, userId, onBack, onSent }) {
+export function ProviderDetail({ providerId, wedding, userId, onBack, onSent, backLabel = 'Retour au catalogue', isFavorite = false, favoritePending = false, onToggleFavorite }) {
   const [provider, setProvider] = useState(null)
   const [status, setStatus] = useState('loading') // loading | error | notfound | ready
   const [contactOpen, setContactOpen] = useState(false)
@@ -38,7 +38,7 @@ export function ProviderDetail({ providerId, wedding, userId, onBack, onSent }) 
     apply(await getProviderById(providerId))
   }
 
-  const backButton = <button type="button" className="secondary-button provider-back" onClick={onBack}>← Retour au catalogue</button>
+  const backButton = <button type="button" className="secondary-button provider-back" onClick={onBack}>← {backLabel}</button>
 
   if (status === 'loading') {
     return <section className="provider-detail">{backButton}<div className="provider-detail-skeleton" aria-busy="true" aria-label="Chargement du prestataire"><span /><span /><span /></div></section>
@@ -47,7 +47,7 @@ export function ProviderDetail({ providerId, wedding, userId, onBack, onSent }) 
     return (
       <section className="provider-detail">
         <div className="error-banner" role="alert"><span>Ce prestataire n’a pas pu être chargé.</span><button type="button" onClick={retry}>Réessayer</button></div>
-        <button type="button" className="secondary-button provider-back" onClick={onBack}>Retour au catalogue</button>
+        <button type="button" className="secondary-button provider-back" onClick={onBack}>{backLabel}</button>
       </section>
     )
   }
@@ -67,7 +67,12 @@ export function ProviderDetail({ providerId, wedding, userId, onBack, onSent }) 
   return (
     <section className="provider-detail" aria-labelledby="provider-detail-title">
       {backButton}
-      <ProviderCover provider={provider} iconSize={64} className="provider-detail-cover" />
+      <div className="provider-cover-wrap provider-detail-cover-wrap">
+        <ProviderCover provider={provider} iconSize={64} className="provider-detail-cover" />
+        {onToggleFavorite && (
+          <FavoriteButton providerName={provider.name} isFavorite={isFavorite} pending={favoritePending} onToggle={() => onToggleFavorite(provider.id)} />
+        )}
+      </div>
       {gallery.length > 0 && (
         <div className="provider-gallery" aria-label="Galerie">
           {gallery.map((url) => <img key={url} src={url} alt="" loading="lazy" />)}

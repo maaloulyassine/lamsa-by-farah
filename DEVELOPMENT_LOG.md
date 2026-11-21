@@ -181,3 +181,26 @@
   16. No Phase 1 provider arrays, Unsplash provider fallback, dead buttons, `DT` or `is_urgent` in `src`; SQL `is_urgent` 0 rows. Production preview: SW activated and controlling, `lamsa-v1` = 13 same-origin static URLs, 0 Supabase / Unsplash / external fonts, offline reload renders the app shell.
 - Lint: 0 warnings, 0 errors, no suppressions. Build passes and its output was verified in the browser.
 - 4d has not started.
+
+### Phase 4d — Persisted favorites
+
+- Created: `src/services/favoritesService.js`, `src/components/favorites/FavoritesPage.jsx`, `src/components/favorites/useFavoriteToggle.js` (shared optimistic toggle used by Services, provider detail and Favorites).
+- Modified: `ProviderCard.jsx` (`FavoriteButton`, cover wrapper), `ProviderDetail.jsx` (heart on the cover, `backLabel`), `ProvidersPage.jsx` (favorite ids fetched on mount, hearts disabled until loaded, toggle and toasts), `App.jsx` (Phase 1 Favorites placeholder replaced; Profile “Mes services favoris” opens Favorites, “Phase suivante” removed), `App.css`.
+- No migration, RLS, seed, service-worker, `vite.config.js` or 4a/4b/4c service change (`git diff eae3c71` on those paths is empty).
+- Validation (Playwright, local Supabase, fresh userA/userB):
+  1. Empty state “Aucun prestataire en favoris pour le moment.” + “Découvrir les services”; SQL 0.
+  2. Optimistic heart: 100 ms after the click (write delayed 1.2 s) `aria-pressed=true`, disabled, SQL still 0; after the write SQL 1.
+  3. Reload keeps the heart filled; Favorites lists Salle Élégance.
+  4. Favorites card shows name, “Exemple de démonstration” and a pressed heart.
+  5. Unfavorite on Favorites: card gone immediately; SQL 0. 6. Services heart unfilled.
+  7. Two favorites → 2 cards, SQL 2. 8. One removed → 1 card, SQL 1.
+  9. Three synchronous clicks → exactly 1 network write (`POST ?on_conflict=user_id,provider_id`), SQL 1.
+  10. Offline: heart reverted, toast “Impossible de mettre à jour les favoris. Réessayez.”, auto-dismissed; delayed failure shows the flip (pressed, disabled) then the revert.
+  11. Detail heart pressed on open → click → unpressed (SQL 1 → 0); list heart unpressed after back.
+  12. Count labels: empty state / “1 prestataire en favori” / “2 prestataires en favoris”.
+  13. userB: empty Favorites, 0 pressed hearts; REST 0 rows; SQL as userB 0 rows (0 of userA's); userB delete of userA rows → 0 rows; insert as userA → 403; userA keeps 2 rows.
+  14. 390 px: 20 hearts at 44×44, Favorites one column (354px), scrollWidth 390 on Services, Favorites and detail; desktop heart 36 px.
+  15. `is_urgent` 0 rows; no `DT`, no Phase 1 favorites placeholder or fake array, no suppressions.
+  16. Build exit 0, 0 corrupted markers. Preview renders Welcome, Services, Favorites and Budget with zero console messages online. SW activated and controlling; `lamsa-v1` = 13 same-origin static URLs, 0 Supabase / Unsplash / external fonts. Offline reload renders the app shell.
+- Lint: 0 warnings, 0 errors, no suppressions.
+- Phase 4 is complete. Phase 5 has not started.

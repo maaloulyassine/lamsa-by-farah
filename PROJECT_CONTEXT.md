@@ -83,7 +83,7 @@ Phase 1 foundations are complete:
 
 ## Phase status
 
-**Current phase: Phase 4 — Product functionality. Sub-batches 4a (planner), 4b (budget) and 4c (providers) complete; 4d (favorites) has not started.**
+**Current phase: Phase 4 — Product functionality — complete (4a planner, 4b budget, 4c providers, 4d favorites). Phase 5 has not started.**
 
 Actual Phase 1 validation:
 
@@ -106,7 +106,7 @@ Actual Phase 2 validation:
 - Phase 1 navigation and layout passed manual smoke testing without regressions.
 - The installed environment emitted a Node compatibility warning with Node `20.15.0`; Vite requires Node `20.19+` or `22.12+`. GitHub Actions uses Node `20.19.0`.
 
-**Next phase: Phase 4 — sub-batch 4d, favorites (not started).**
+**Next phase: Phase 5 — Quality and delivery (not started).**
 
 ## Remaining work and future phases
 
@@ -141,6 +141,11 @@ Actual Phase 2 validation:
   - Price filter semantics: `price_from >= min AND COALESCE(price_to, price_from) <= max`. Prices display as “5 000 – 8 000 TND”, “À partir de 5 000 TND” or “Tarif sur demande”.
   - Contact requests insert `status='pending'` with `user_id` (NOT NULL, checked by RLS); the modal shows the spec §5 disclaimer.
   - Phase 1 inline Services/ProviderCard, the Unsplash provider fallback, and the dead heart, “Filtres” and “⌘ K” buttons were removed. No migration, RLS, seed or service-worker change.
+- 4d — Persisted favorites: complete (tag `v0.4d-favorites`). Phase 4 is complete.
+  - `src/services/favoritesService.js` (`listFavoriteIds`, `listFavoriteProviders` as one favorites→providers inner-join query, `addFavorite` as upsert ON CONFLICT DO NOTHING, `removeFavorite`); `user_id` comes from the local session because the column has no default and RLS checks it.
+  - `src/components/favorites/FavoritesPage.jsx` and `useFavoriteToggle.js` (shared optimistic toggle: per-provider in-flight lock, revert and toast on error).
+  - Heart at the top-right of the cover on cards and the detail page (`aria-pressed`, 44 px on mobile / 36 px on desktop). Favorites are refetched on every screen mount; there is no cross-screen cache.
+  - Profile “Mes services favoris” now opens Favorites. No migration, RLS or service-worker change.
   - `src/components/budget/` (BudgetPage, ExpenseModal, BudgetEditModal), `src/services/expensesService.js`, `src/utils/format.js` (`formatTnd`, `parseTndAmount`, `mutationErrorMessage`).
   - Single ring card (budget total prévu, dépenses réelles payées, restant, % utilisé) plus a separate “Estimations planning (indicatif)” card summing `tasks.estimated_cost`, not deducted from the remaining amount.
   - Overspending whenever remaining < 0, including total budget = 0 with any expense; budget = 0 with no expense shows “Non défini”.
@@ -178,6 +183,8 @@ Actual Phase 2 validation:
 
 ## Known issues and technical decisions
 
+- Profile menu items 'Mon projet de mariage' and 'Paramètres' are inactive placeholder buttons. They require dedicated screens (project edit, settings) not in MVP scope. Spec §11 rule 'Aucun bouton principal inactif' is partially violated — the app has 2 dead buttons in Profile. Phase 5 consideration: either implement the screens or remove the items.
+- The heart button changes both `aria-pressed` and its `aria-label` (“Ajouter aux favoris” / “Retirer des favoris”), as specified. Some screen readers may announce the state twice; Phase 5 accessibility review can choose a fixed label with `aria-pressed` only.
 - Le filtre de disponibilité prestataire n'est pas implémenté dans le MVP. Le champ `providers.availability_notes` est du texte libre et ne permet pas de répondre de manière fiable à « disponible à la date du mariage ? ». Inventer une disponibilité structurée violerait les règles de démonstration du cahier des charges (§8). Cette fonctionnalité est reportée à une phase future qui ajoutera un champ de disponibilité structuré.
 - Seed demo gaps (Phase 5 polish): the 20 demo providers have NULL availability_notes, phone, website, social_url, cover_image_url, and empty gallery. Cards use gradient placeholders + category icons. Provider detail shows « Non renseignée » for missing availability with the disclaimer. Enrich seed data in Phase 5.
 - Dashboard quick-tile categories are hardcoded Phase 1 tuples. Cosmetic — deferred to Phase 5 cleanup.

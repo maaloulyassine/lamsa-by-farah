@@ -32,15 +32,39 @@ export function ProviderCover({ provider, iconSize = 40, className = '' }) {
   )
 }
 
+// Heart toggle: aria-pressed + label reflect the state; disabled while a mutation is in flight.
+export function FavoriteButton({ providerName, isFavorite, pending, onToggle }) {
+  return (
+    <button
+      type="button"
+      className={`favorite-button ${isFavorite ? 'active' : ''}`}
+      aria-pressed={isFavorite}
+      aria-label={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+      title={`${isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'} : ${providerName}`}
+      disabled={pending}
+      onClick={onToggle}
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M20.8 8.6c0 5.4-8.8 10.1-8.8 10.1S3.2 14 3.2 8.6A4.6 4.6 0 0 1 12 6.1a4.6 4.6 0 0 1 8.8 2.5Z" />
+      </svg>
+    </button>
+  )
+}
+
 export function DemoBadge() {
   return <span className="provider-demo-badge">Exemple de démonstration</span>
 }
 
-export function ProviderCard({ provider, onOpen }) {
+export function ProviderCard({ provider, onOpen, isFavorite = false, favoritePending = false, onToggleFavorite }) {
   const location = [provider.city, provider.governorate?.name].filter(Boolean).join(', ')
   return (
     <article className="provider-card" data-provider-id={provider.id}>
-      <ProviderCover provider={provider} />
+      <div className="provider-cover-wrap">
+        <ProviderCover provider={provider} />
+        {onToggleFavorite && (
+          <FavoriteButton providerName={provider.name} isFavorite={isFavorite} pending={favoritePending} onToggle={() => onToggleFavorite(provider.id)} />
+        )}
+      </div>
       <div className="provider-body">
         <div className="provider-card-badges">{provider.is_demo && <DemoBadge />}</div>
         <h3 className="provider-name">{provider.name}</h3>

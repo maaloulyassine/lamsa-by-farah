@@ -83,7 +83,7 @@ Phase 1 foundations are complete:
 
 ## Phase status
 
-**Current phase: Phase 3 — Supabase — validation follow-up pending.**
+**Current phase: Phase 4 — Product functionality. Sub-batches 4a (planner) and 4b (budget) complete; 4c has not started.**
 
 Actual Phase 1 validation:
 
@@ -106,7 +106,7 @@ Actual Phase 2 validation:
 - Phase 1 navigation and layout passed manual smoke testing without regressions.
 - The installed environment emitted a Node compatibility warning with Node `20.15.0`; Vite requires Node `20.19+` or `22.12+`. GitHub Actions uses Node `20.19.0`.
 
-**Next phase: Phase 4 — Product functionality, sub-batch 4a implementation in progress.**
+**Next phase: Phase 4 — sub-batch 4c (not started).**
 
 ## Remaining work and future phases
 
@@ -134,13 +134,21 @@ Actual Phase 2 validation:
 
 ### Phase 4 — Product functionality
 
-- Sub-batch 4a — deterministic planner and task CRUD: implemented and signed off for final sign-off validation.
+- Sub-batch 4a — deterministic planner and task CRUD: complete (tag `v0.4a-planner`).
+- Sub-batch 4b — persisted budget and expense CRUD: complete (tag `v0.4b-budget`).
+  - `src/components/budget/` (BudgetPage, ExpenseModal, BudgetEditModal), `src/services/expensesService.js`, `src/utils/format.js` (`formatTnd`, `parseTndAmount`, `mutationErrorMessage`).
+  - Single ring card (budget total prévu, dépenses réelles payées, restant, % utilisé) plus a separate “Estimations planning (indicatif)” card summing `tasks.estimated_cost`, not deducted from the remaining amount.
+  - Overspending whenever remaining < 0, including total budget = 0 with any expense; budget = 0 with no expense shows “Non défini”.
+  - Category breakdown always lists the 10 categories: spent DESC, then empty ones by `sort_order`.
+  - Approved deviation: `total_budget` is edited from the Budget page (BudgetEditModal) because no project-editing screen exists yet.
+  - No SQL migration, RLS change, or service-worker change; Phase 3c owner-only expense policies are reused.
 
 - Implement wedding project creation/editing.
 - Implement deterministic smart planner generation, urgent-date handling, duplicate prevention, and replacement confirmation.
 - Add task creation, editing, deletion, notes, time, estimated cost, and statuses.
 - Add complete monthly calendar behavior.
-- Add expense CRUD and budget calculations including overspending.
+- ~~Add expense CRUD and budget calculations including overspending.~~ Done in 4b.
+- Dashboard budget summary card (spec §4.3) — deferred to a small follow-up after 4b.
 - Complete combined provider filters and provider detail/contact flow.
 - Persist user-specific favorites.
 
@@ -165,6 +173,12 @@ Actual Phase 2 validation:
 
 ## Known issues and technical decisions
 
+- Delete uses native window.confirm (same as 4a tasks). Polish to styled modal in a future phase.
+- Budget taxonomy reuses the 10 provider categories. Items like invitations, jewelry, honeymoon have no dedicated category and must be logged under an existing category with a note. Dedicated budget taxonomy deferred to a future phase.
+- The flower icon is used 3× in the category seed (`coiffure-maquillage`, `decoration`, `fleurs`) — cosmetic, differentiate in a future phase.
+- Dashboard budget summary card (spec §4.3) — deferred to a small follow-up after 4b.
+- TND formatting uses `Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' })`: U+202F groups thousands and the engine emits U+00A0 (not U+202F) between the amount and “TND”. No “DT” string remains in `src/`.
+- Overspend ring with total budget = 0 shows “—” + “Dépassement” (a percentage of 0 is undefined).
 - The application currently uses local React state and resets data on refresh by design.
 - Remote Unsplash images are temporary demonstration assets and should be replaced or formalized before production delivery.
 - The current prototype uses local state navigation instead of URL routing; this is acceptable for Phase 1.

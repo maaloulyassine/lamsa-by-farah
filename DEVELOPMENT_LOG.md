@@ -122,3 +122,29 @@
 - Confirmed the only old fake task symbols and module-level dashboard date pattern are absent.
 - No 4b implementation started.
 
+
+## 2026-11-21
+
+### Phase 4b — Persisted budget and expense CRUD
+
+- Kept the uncommitted 4b draft found after the `v0.4a-planner` tag and fixed it in place rather than rebuilding.
+- Fixes: nested `<main>` replaced by `<section>`; one shared loader (`fetchBudgetData` + `applyResults`) for the first load and every reload; duplicated three-card totals replaced by one ring card and one “Estimations planning (indicatif)” card; budget = 0 with expenses now shows the overspend state; overspend banner keeps `role="alert"`.
+- Amount validation via `parseTndAmount`: empty rejected, rounded to 2 decimals, > 0 for expenses, ≥ 0 for the budget, capped at 9 999 999 999,99 TND (`numeric(12,2)`); forms use `noValidate` so inline French errors show.
+- Mutation errors keep the modal and its fields; network failures show French copy. The delete error appears without hiding the list.
+- The success toast auto-dismisses after 4 s even without a CSS animation.
+- The overspend ring text wraps inside the ring on desktop (it used to be clipped).
+- Provider-card price changed from “… DT” to `formatTnd`; `--urgent` CSS token added; unused draft CSS removed.
+- Validation (Playwright on local Supabase, users created for the run, proofs in the handoff report):
+  1. Fresh 15 000 TND wedding: SQL count 0; UI 0 TND / 15 000 TND restant / 0 %; empty state shown.
+  2. +9 000 → 9 000 / 6 000 / 60 %. 3. +2 000 → 11 000 / 4 000 / 73 %.
+  4. +5 000 → “Budget dépassé de 1 000 TND” + subtitle; ring “107 % du budget / Dépassement”.
+  5. Edit 5 000 → 3 000: 16 000 → 14 000, overspend cleared. 6. Delete 2 000 (window.confirm): 14 000 → 12 000.
+  7. Reload keeps 12 000 / 3 000 / 80 %. 8. 10 breakdown rows, order matches SQL GROUP BY.
+  9. Grouping U+202F, U+00A0 before “TND”, no U+0020, no “DT”. 10. userB sees 0 expenses; API: select 0 rows, insert 403, update/delete affect 0 rows; amount 0 → 23514.
+  11. 390 px: every control ≥ 44 px, scrollWidth 390, one-column modal grid, native date input, focus on first field, Esc closes, focus returns to the trigger.
+  12. Exact empty-state text. 13. Lint: 0 warnings, 0 errors, no suppressions. 14. Build passes (Node 20.15 warning only).
+  15. No fake-expense symbols. 16. `is_urgent` absent (0 rows), no Phase 1 fake data.
+  Extra: budget = 0 → “Non défini”; +500 → “Budget dépassé de 500 TND”.
+- Deviations / known issues recorded: `total_budget` edited from the Budget page; native `window.confirm` delete (same as 4a); 10 provider categories reused as the budget taxonomy; flower icon used 3× in the seed; the Intl currency gap is U+00A0.
+- No migration, RLS, or service-worker change.
+- 4c has not started.

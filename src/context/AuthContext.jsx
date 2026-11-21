@@ -10,7 +10,7 @@ export function AuthProvider({ children }) {
   const [error, setError] = useState(isSupabaseConfigured ? '' : 'Supabase n’est pas configuré.')
   const [sessionExpired, setSessionExpired] = useState(false)
 
-  const refreshProfileAndWedding = useCallback(async (user) => {
+  const refreshProfileAndWedding = useCallback(async (user, { silent = false } = {}) => {
     if (!user) {
       setProfile(null)
       setWedding(null)
@@ -18,7 +18,7 @@ export function AuthProvider({ children }) {
       return
     }
 
-    setLoading(true)
+    if (!silent) setLoading(true)
     setError('')
 
     const [profileResult, weddingResult] = await Promise.all([
@@ -122,7 +122,7 @@ export function AuthProvider({ children }) {
   }
 
   const refreshWedding = useCallback(async () => {
-    if (session?.user) await refreshProfileAndWedding(session.user)
+    if (session?.user) await refreshProfileAndWedding(session.user, { silent: true })
   }, [session, refreshProfileAndWedding])
 
   const value = useMemo(() => ({

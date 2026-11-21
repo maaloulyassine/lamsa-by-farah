@@ -6,6 +6,8 @@ import { WeddingSetup } from './pages/WeddingSetup'
 import { isSupabaseConfigured, supabase } from './services/supabaseClient'
 import { PlanningPage } from './components/planner/PlanningPage'
 import { listWeddingTasks } from './services/tasksService'
+import { BudgetPage } from './components/budget/BudgetPage'
+import { formatTnd } from './utils/format'
 
 const providerImages = [
   'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=900&q=85',
@@ -42,6 +44,8 @@ function Icon({ name, size = 20 }) {
     cloche: <><path d="M4 17h16M6 17a6 6 0 0 1 12 0M3 20h18M12 7V5M10 5h4" /></>,
     cake: <><path d="M4 12h16v8H4zM4 16h16M7 12V9h10v3M9 9V6h6v3M12 6V3" /></>,
     music: <><path d="M9 18V5l10-2v13M9 18a3 3 0 1 1-3-3 3 3 0 0 1 3 3ZM19 16a3 3 0 1 1-3-3 3 3 0 0 1 3 3Z" /></>,
+    camera: <><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /><circle cx="12" cy="13" r="3" /></>,
+    car: <><path d="M5 17h14M5 17a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.5l1.5-3h8l1.5 3H19a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2M5 17a2 2 0 1 0 4 0M15 17a2 2 0 1 0 4 0" /><circle cx="7" cy="17" r="2" /><circle cx="17" cy="17" r="2" /></>,
     check: <><path d="m5 12 4 4L19 6" /><circle cx="12" cy="12" r="9" /></>,
     clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
     map: <><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Z" /><path d="M9 3v15M15 6v15" /></>,
@@ -50,7 +54,7 @@ function Icon({ name, size = 20 }) {
 }
 
 function App() {
-  const { user, profile, wedding, loading, error, sessionExpired } = useAuth()
+  const { user, profile, wedding, loading, error, sessionExpired, refreshWedding } = useAuth()
   const [authMode, setAuthMode] = useState(null)
   const [activePage, setActivePage] = useState('home')
   const [selectedCategory, setSelectedCategory] = useState('Toutes')
@@ -92,7 +96,7 @@ function App() {
         <main className="page-content">
           {activePage === 'home' && <Dashboard setActivePage={setActivePage} wedding={wedding} profile={profile} />}
           {activePage === 'planning' && <PlanningPage wedding={wedding} />}
-          {activePage === 'budget' && <Budget />}
+          {activePage === 'budget' && <BudgetPage wedding={wedding} refreshWedding={refreshWedding} />}
           {activePage === 'services' && <Services search={search} setSearch={setSearch} selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} />}
           {activePage === 'favorites' && <Favorites setActivePage={setActivePage} />}
           {activePage === 'profile' && <Profile setActivePage={setActivePage} />}
@@ -155,10 +159,6 @@ function TaskRow({ task, onToggle }) {
   return <div className={`task-row ${task.status === 'done' ? 'completed' : ''}`}><button className="check-button" onClick={onToggle} aria-label={`Marquer ${task.title}`}>{task.status === 'done' && <Icon name="check" size={14} />}</button><span className="task-icon"><Icon name={task.icon || 'check'} size={17} /></span><div><strong>{task.title}</strong><small>{new Date(`${task.date}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</small></div></div>
 }
 
-function Budget() {
-  return <><PageTitle eyebrow="Fonctionnalité à venir" title="Mon budget" /><div className="empty-state phase-placeholder"><Icon name="wallet" size={28} /><h3>Votre budget réel sera disponible prochainement</h3><p>Les dépenses locales de démonstration ne sont pas sauvegardées.</p></div></>
-}
-
 function Services({ search, setSearch, selectedCategory, setSelectedCategory }) {
   const [providers, setProviders] = useState([])
   const [categories, setCategories] = useState([])
@@ -190,7 +190,7 @@ function Services({ search, setSearch, selectedCategory, setSelectedCategory }) 
 }
 
 function ProviderCard({ provider, favorite, onFavorite }) {
-  return <article className="provider-card"><div className="provider-image"><img src={provider.image} alt="" /><span className="provider-location"><Icon name="map" size={12} /> {provider.governorate || provider.city}</span>{provider.isDemo && <span className="demo-badge">Exemple de démonstration</span>}<button className={`favorite-button ${favorite ? 'is-favorite' : ''}`} onClick={onFavorite} aria-label="Ajouter aux favoris"><Icon name="heart" size={18} /></button></div><div className="provider-body"><div className="provider-title"><h3>{provider.name}</h3><span><b>★</b> {provider.rating} <small>({provider.reviews})</small></span></div><p>{provider.description}</p><div className="provider-footer"><strong>À partir de {Number(provider.price || 0).toLocaleString('fr-FR')} DT</strong><button className="small-arrow"><Icon name="arrow" size={14} /></button></div></div></article>
+  return <article className="provider-card"><div className="provider-image"><img src={provider.image} alt="" /><span className="provider-location"><Icon name="map" size={12} /> {provider.governorate || provider.city}</span>{provider.isDemo && <span className="demo-badge">Exemple de démonstration</span>}<button className={`favorite-button ${favorite ? 'is-favorite' : ''}`} onClick={onFavorite} aria-label="Ajouter aux favoris"><Icon name="heart" size={18} /></button></div><div className="provider-body"><div className="provider-title"><h3>{provider.name}</h3><span><b>★</b> {provider.rating} <small>({provider.reviews})</small></span></div><p>{provider.description}</p><div className="provider-footer"><strong>À partir de {formatTnd(provider.price)}</strong><button className="small-arrow"><Icon name="arrow" size={14} /></button></div></div></article>
 }
 
 function Favorites({ setActivePage }) {
@@ -203,7 +203,7 @@ function Profile({ setActivePage }) {
   const weddingDate = wedding?.wedding_date
     ? new Date(`${wedding.wedding_date}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
     : 'Projet à compléter'
-  return <><PageTitle eyebrow="Votre espace personnel" title="Mon profil" /><section className="profile-header content-card"><div className="large-avatar">{initial}</div><div><h2>{profile?.full_name || 'Votre profil'}</h2><p>{user?.email}</p><button className="text-button">Modifier mon profil <Icon name="arrow" size={14} /></button></div></section><div className="profile-menu content-card">{[['calendar', 'Mon projet de mariage', weddingDate], ['wallet', 'Mon budget', `${Number(wedding?.total_budget || 0).toLocaleString('fr-FR')} DT`], ['building', 'Mes services favoris', 'Phase suivante'], ['user', 'Paramètres', 'Préférences et sécurité']].map(([icon, label, meta], index) => <button key={label} onClick={() => index === 1 && setActivePage('budget')}><span className="profile-menu-icon"><Icon name={icon} size={19} /></span><span><strong>{label}</strong><small>{meta}</small></span><Icon name="chevron" size={17} /></button>)}</div><button className="logout-button" onClick={signOut}>Se déconnecter</button></>
+  return <><PageTitle eyebrow="Votre espace personnel" title="Mon profil" /><section className="profile-header content-card"><div className="large-avatar">{initial}</div><div><h2>{profile?.full_name || 'Votre profil'}</h2><p>{user?.email}</p><button className="text-button">Modifier mon profil <Icon name="arrow" size={14} /></button></div></section><div className="profile-menu content-card">{[['calendar', 'Mon projet de mariage', weddingDate], ['wallet', 'Mon budget', formatTnd(wedding?.total_budget)], ['building', 'Mes services favoris', 'Phase suivante'], ['user', 'Paramètres', 'Préférences et sécurité']].map(([icon, label, meta], index) => <button key={label} onClick={() => index === 1 && setActivePage('budget')}><span className="profile-menu-icon"><Icon name={icon} size={19} /></span><span><strong>{label}</strong><small>{meta}</small></span><Icon name="chevron" size={17} /></button>)}</div><button className="logout-button" onClick={signOut}>Se déconnecter</button></>
 }
 
 export default App

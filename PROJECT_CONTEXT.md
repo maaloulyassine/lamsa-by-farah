@@ -106,7 +106,7 @@ Actual Phase 2 validation:
 - Phase 1 navigation and layout passed manual smoke testing without regressions.
 - The installed environment emitted a Node compatibility warning with Node `20.15.0`; Vite requires Node `20.19+` or `22.12+`. GitHub Actions uses Node `20.19.0`.
 
-**Next phase: Phase 4 — Product functionality, blocked until final Phase 3 sign-off.**
+**Next phase: Phase 4 — Product functionality, sub-batch 4a implementation in progress.**
 
 ## Remaining work and future phases
 

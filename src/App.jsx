@@ -4,6 +4,8 @@ import { useAuth } from './context/useAuth'
 import { AuthScreen } from './pages/AuthPages'
 import { WeddingSetup } from './pages/WeddingSetup'
 import { isSupabaseConfigured, supabase } from './services/supabaseClient'
+import { PlanningPage } from './components/planner/PlanningPage'
+import { listWeddingTasks } from './services/tasksService'
 
 const providerImages = [
   'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=900&q=85',
@@ -18,14 +20,6 @@ const categories = [
   ['Traiteur', 'cloche', 'Traiteurs et chefs'],
   ['Gâteau', 'cake', 'Wedding cakes / gâteaux'],
   ['Artistes & DJ', 'music', 'DJ et artistes'],
-]
-
-const initialTasks = [
-  { id: 1, title: 'Réserver la salle', date: '2026-11-18', status: 'done', icon: 'building' },
-  { id: 2, title: 'Choisir le thème', date: '2026-11-20', status: 'done', icon: 'flower' },
-  { id: 3, title: 'Commander le gâteau', date: '2026-11-24', status: 'todo', icon: 'cake' },
-  { id: 4, title: 'Finaliser la décoration', date: '2026-11-28', status: 'todo', icon: 'flower' },
-  { id: 5, title: 'Confirmer les prestataires', date: '2026-12-03', status: 'todo', icon: 'check' },
 ]
 
 function Icon({ name, size = 20 }) {
@@ -59,12 +53,10 @@ function App() {
   const { user, profile, wedding, loading, error, sessionExpired } = useAuth()
   const [authMode, setAuthMode] = useState(null)
   const [activePage, setActivePage] = useState('home')
-  const [tasks, setTasks] = useState(initialTasks)
   const [selectedCategory, setSelectedCategory] = useState('Toutes')
   const [search, setSearch] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
 
-  const toggleTask = (id) => setTasks((items) => items.map((task) => task.id === id ? { ...task, status: task.status === 'done' ? 'todo' : 'done' } : task))
 
   if (!user && (authMode || sessionExpired)) {
     return <AuthScreen initialMode="signin" onBack={() => setAuthMode(null)} expired={sessionExpired} />
@@ -98,8 +90,8 @@ function App() {
           <div className="topbar-actions"><button className="icon-button notification" aria-label="Notifications"><Icon name="bell" size={19} /><i /></button><button className="avatar" onClick={() => setActivePage('profile')}>F</button></div>
         </header>
         <main className="page-content">
-          {activePage === 'home' && <Dashboard setActivePage={setActivePage} tasks={tasks} toggleTask={toggleTask} wedding={wedding} profile={profile} />}
-          {activePage === 'planning' && <Planning tasks={tasks} toggleTask={toggleTask} />}
+          {activePage === 'home' && <Dashboard setActivePage={setActivePage} wedding={wedding} profile={profile} />}
+          {activePage === 'planning' && <PlanningPage wedding={wedding} />}
           {activePage === 'budget' && <Budget />}
           {activePage === 'services' && <Services search={search} setSearch={setSearch} selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} />}
           {activePage === 'favorites' && <Favorites setActivePage={setActivePage} />}
@@ -122,13 +114,27 @@ function PageTitle({ eyebrow, title, action }) {
   return <div className="page-title"><div><p className="eyebrow">{eyebrow}</p><h1>{title}</h1></div>{action}</div>
 }
 
-function Dashboard({ setActivePage, tasks, toggleTask, wedding, profile }) {
+function Dashboard({ setActivePage, wedding, profile }) {
   const [dashboardNow, setDashboardNow] = useState(() => new Date())
+  const [tasks, setTasks] = useState([])
+  const [tasksLoading, setTasksLoading] = useState(true)
+  const [tasksError, setTasksError] = useState('')
 
   useEffect(() => {
     const id = setInterval(() => setDashboardNow(new Date()), 60_000)
     return () => clearInterval(id)
   }, [])
+
+  useEffect(() => {
+    let active = true
+    listWeddingTasks(wedding.id).then(({ data, error }) => {
+      if (!active) return
+      if (error) setTasksError(error.message)
+      setTasks(data ?? [])
+      setTasksLoading(false)
+    })
+    return () => { active = false }
+  }, [wedding.id])
 
   const upcoming = tasks.filter((task) => task.status !== 'done').slice(0, 3)
   const greetingName = profile?.full_name?.trim() || 'vous'
@@ -141,16 +147,12 @@ function Dashboard({ setActivePage, tasks, toggleTask, wedding, profile }) {
     <section className="hero-card"><div className="hero-image" /><div className="hero-overlay"><span className="pill light">Votre espace mariage</span><h2>Rêvez grand.<br /><em>On s’occupe du reste.</em></h2><button className="ghost-button" onClick={() => setActivePage('services')}>Découvrir les services <Icon name="arrow" size={15} /></button></div></section>
     <div className="quick-grid">{categories.map(([label, icon]) => <button key={label} className="quick-card" onClick={() => setActivePage('services')}><span className="quick-icon"><Icon name={icon} size={23} /></span><span>{label}</span></button>)}</div>
     <div className="dashboard-grid"><section className="content-card countdown-card"><div className="card-heading"><div><p className="eyebrow">Le grand jour</p><h2>{weddingDateLabel}</h2></div><span className="calendar-badge"><Icon name="calendar" size={19} /></span></div><div className="countdown"><div><strong>{weddingDate ? Math.max(0, Math.ceil((weddingDate - dashboardNow) / 86400000)) : '--'}</strong><span>jours</span></div><b>·</b><div><strong>08</strong><span>heures</span></div><b>·</b><div><strong>42</strong><span>minutes</span></div></div><div className="progress-label"><span>Votre préparation</span><b>42%</b></div><div className="progress"><span style={{ width: '42%' }} /></div><button className="text-button" onClick={() => setActivePage('planning')}>Voir mon planning <Icon name="arrow" size={14} /></button></section>
-      <section className="content-card tasks-card"><div className="card-heading"><div><p className="eyebrow">À ne pas oublier</p><h2>Prochaines tâches</h2></div><button className="round-button" onClick={() => setActivePage('planning')}><Icon name="plus" size={17} /></button></div><div className="task-list compact">{upcoming.map((task) => <TaskRow key={task.id} task={task} onToggle={() => toggleTask(task.id)} />)}</div><button className="text-button" onClick={() => setActivePage('planning')}>Voir toutes les tâches <Icon name="arrow" size={14} /></button></section></div>
+      <section className="content-card tasks-card"><div className="card-heading"><div><p className="eyebrow">À ne pas oublier</p><h2>Prochaines tâches</h2></div><button className="round-button" onClick={() => setActivePage('planning')}><Icon name="plus" size={17} /></button></div>{tasksLoading ? <div className="loading-state">Chargement...</div> : tasksError ? <div className="error-banner">{tasksError}</div> : upcoming.length === 0 ? <div className="empty-day"><p>Aucune tâche à venir</p><button className="text-button" onClick={() => setActivePage('planning')}>Générer le planning</button></div> : <div className="task-list compact">{upcoming.map((task) => <TaskRow key={task.id} task={{ ...task, date: task.task_date }} />)}</div>}<button className="text-button" onClick={() => setActivePage('planning')}>Voir toutes les tâches <Icon name="arrow" size={14} /></button></section></div>
   </>
 }
 
 function TaskRow({ task, onToggle }) {
-  return <div className={`task-row ${task.status === 'done' ? 'completed' : ''}`}><button className="check-button" onClick={onToggle} aria-label={`Marquer ${task.title}`}>{task.status === 'done' && <Icon name="check" size={14} />}</button><span className="task-icon"><Icon name={task.icon} size={17} /></span><div><strong>{task.title}</strong><small>{new Date(`${task.date}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</small></div></div>
-}
-
-function Planning() {
-  return <><PageTitle eyebrow="Fonctionnalité à venir" title="Mon planning" /><div className="empty-state phase-placeholder"><Icon name="calendar" size={28} /><h3>Votre planning sera disponible prochainement</h3><p>Cette section sera activée avec les données réelles lors de la phase suivante.</p></div></>
+  return <div className={`task-row ${task.status === 'done' ? 'completed' : ''}`}><button className="check-button" onClick={onToggle} aria-label={`Marquer ${task.title}`}>{task.status === 'done' && <Icon name="check" size={14} />}</button><span className="task-icon"><Icon name={task.icon || 'check'} size={17} /></span><div><strong>{task.title}</strong><small>{new Date(`${task.date}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</small></div></div>
 }
 
 function Budget() {

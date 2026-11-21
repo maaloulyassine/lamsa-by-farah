@@ -82,3 +82,29 @@
 - Follow-up validated: Welcome, Dashboard, Planning, Budget, Services, Favorites, and Profile rendered at 390px and desktop widths.
 - Follow-up infrastructure: Phase 3 baseline and follow-up commits are expected to remain on separate Git commit boundaries.
 
+### Phase 4a — Deterministic planner and task CRUD
+
+- Replaced the module-level dashboard date with a Dashboard-local state and 60-second interval refresh.
+- Added `src/services/tasksService.js` with task list, create, update, delete, and `set_wedding_plan` RPC calls.
+- Added `src/components/planner/PlanningPage.jsx` and `src/components/planner/TaskModal.jsx`.
+- Replaced the fake Planning and Dashboard task lists with Supabase tasks.
+- Added task CRUD, status transitions, calendar date filtering, regeneration confirmation, urgent-date styling, and the “Les coûts estimés sont indicatifs” note.
+- Added migration `20261121000004_phase4a_tasks_planner.sql`:
+  - `template_key`
+  - generated `is_generated`
+  - generated-template unique index
+  - wedding/date/status index
+  - atomic `set_wedding_plan(uuid)` RPC with `SECURITY INVOKER`
+- Added reversal SQL in `supabase/reversals/20261121000004_phase4a_tasks_planner_reversal.sql`.
+- RPC verification passed:
+  - normal and repeated generation returned 15 rows with no duplicates;
+  - close wedding was clamped to today;
+  - 200-day future wedding retained past computed dates;
+  - 400-day past wedding retained past dates;
+  - userB calling userA's wedding returned “Wedding not found or access denied”.
+- Browser validation passed for fresh planning generation, regeneration preserving personal tasks, personal task create/edit/delete, status transitions, calendar date selection, and Dashboard next-task ordering.
+- `npm run lint` is clean.
+- `npm run build` passed.
+- Pre-step 0 confirmed: no module-level `Date` initialization remains in `src/`.
+- 4b has not started.
+

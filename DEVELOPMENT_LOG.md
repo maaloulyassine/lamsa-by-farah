@@ -273,3 +273,18 @@
   19. Column guard: owner edits own pending message → 200; admin edits message / wedding date → 400 P0001 “Admins may only update the status column of contact requests”; admin edits status → 200 `sent`.
   20. Owners' “Mes demandes de contact” screens load without error after the new policies and trigger.
 - Phase 6 complete. Phase 5b–5e still pending.
+
+### 2026-11-21 — Phase 6.5: sent contact requests on the Planning page (post-MVP polish)
+
+- Modified: `src/services/contactRequestsService.js` (`listSentContactRequests`), `src/components/planner/PlanningPage.jsx` (separate effect + section before the calendar card; the existing tasks effect and calendar markup are unchanged — the only removed line is the old function signature), `src/App.jsx` (`onNavigateToRequests` prop), `src/App.css`.
+- Decisions: explicit `.eq('user_id', …)` (admin isolation since Phase 6), plain join with "Prestataire indisponible" fallback (consistent with 4e), silent failure, no skeleton (section hidden while loading or empty).
+- Validation (local stack; normal user U, admin A promoted locally; statuses changed through the admin API):
+  1. New user with no requests: no section (SQL 0).
+  2. One pending request created through the 4c modal: still no section.
+  3. Admin marks it sent: section "Demandes de contact transmises", "1 demande transmise au prestataire", card "Salle Élégance — Démo | TRANSMISE | Date du mariage : 12 juin 2027 | Voir dans Mes demandes", placed before the calendar card.
+  4–5. Three sent + one pending: cards ordered 1 mars 2027, 12 juin 2027, then "Date du mariage : non précisée" last; the pending request is not listed (matches SQL `ORDER BY wedding_date ASC NULLS LAST`).
+  Fallback: with a provider deactivated, the card shows "Prestataire indisponible" (provider restored afterwards).
+  6. "Voir dans Mes demandes" opens "Mes demandes de contact" (Profile highlighted).
+  7. Admin isolation: SQL shows admin A 1 sent / user U 3 sent; the admin's unfiltered API read returns every user's sent requests, but the admin's Planning lists only their own card; U still sees 3.
+  8. Calendar month navigation, day selection (task shown on 14 Dec, matching SQL) and regeneration still work; 390 px: one column (354px), scrollWidth 390, links 44 px; no console warnings/errors; lint 0/0, build OK (0 corrupted markers); preview renders with zero console messages; `lamsa-v1` = 13 same-origin entries, 0 supabase.co.
+- Phase 6.5 complete. Phase 5b–5e still pending.

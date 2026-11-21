@@ -199,6 +199,12 @@ The MVP is deployed and publicly accessible.
 - `src/services/adminService.js` uses two queries (requests + providers, then profiles by user ids) because `contact_requests.user_id` references `auth.users`, not `profiles`.
 - Out of scope: delete, edits, notifications, provider responses, promotion UI.
 
+### Phase 6.5 — Sent contact requests on Planning — post-MVP polish (complete)
+
+- Planning shows a "Demandes de contact transmises" section (only when the user has requests with status `sent`), placed after the page title and banners, before the calendar card; the calendar markup is unchanged.
+- `listSentContactRequests()` in `contactRequestsService.js`: own requests only (explicit `user_id` filter, because `contact_requests_select_admin` would otherwise show an admin everyone's requests), plain join to providers ("Prestataire indisponible" fallback), ordered by wedding date ascending (no date last), then newest first.
+- Fails silently (console warning) so Planning never breaks; no skeleton, the section simply appears when there is content. "Voir dans Mes demandes" opens the 4e screen via an `onNavigateToRequests` prop from `App.jsx`.
+
 ### Phase 5 — Quality and delivery
 
 - Run focused functional, responsive, accessibility, security, and RLS validation.

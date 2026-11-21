@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createTask, deleteTask, listWeddingTasks, setWeddingPlan, updateTask } from '../../services/tasksService'
+import { listSentContactRequests } from '../../services/contactRequestsService'
+
+const sentWeddingDateFormatter = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
 import { TaskModal } from './TaskModal'
 
 const statusLabels = {
@@ -27,7 +30,7 @@ function isUrgent(task) {
   return task.status !== 'done' && task.task_date < today
 }
 
-export function PlanningPage({ wedding }) {
+export function PlanningPage({ wedding, onNavigateToRequests }) {
   const [tasks, setTasks] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -39,6 +42,7 @@ export function PlanningPage({ wedding }) {
   const [selectedDate, setSelectedDate] = useState(() => toIsoDate(new Date()))
   const [modalOpen, setModalOpen] = useState(false)
   const [editingTask, setEditingTask] = useState(null)
+  const [sentRequests, setSentRequests] = useState([])
 
   const reload = async () => {
     setLoading(true)
@@ -57,6 +61,15 @@ export function PlanningPage({ wedding }) {
       setTasks(data ?? [])
       setLoading(false)
     })
+    return () => { active = false }
+  }, [wedding.id])
+
+  // Phase 6.5: secondary info — fails silently so Planning never breaks because of it.
+  useEffect(() => {
+    let active = true
+    listSentContactRequests()
+      .then((rows) => { if (active) setSentRequests(rows) })
+      .catch((caught) => console.warn('Demandes transmises non chargées :', caught?.message || caught))
     return () => { active = false }
   }, [wedding.id])
 
@@ -180,6 +193,26 @@ export function PlanningPage({ wedding }) {
       </div>
       {success && <p className="success-banner" onAnimationEnd={() => setSuccess('')}>{success}</p>}
       {error && <div className="error-banner"><span>{error}</span><button onClick={reload}>Réessayer</button></div>}
+      {sentRequests.length > 0 && (
+        <section className="sent-requests-section" aria-labelledby="sent-requests-title">
+          <div className="sent-requests-heading">
+            <h2 id="sent-requests-title">Demandes de contact transmises</h2>
+            <p>{sentRequests.length === 1 ? '1 demande transmise au prestataire' : `${sentRequests.length} demandes transmises au prestataire`}</p>
+          </div>
+          <ul className="sent-requests-list">
+            {sentRequests.map((request) => (
+              <li key={request.id} className="content-card sent-request-card" data-request-id={request.id}>
+                <div className="sent-request-head">
+                  <strong className="sent-request-provider">{request.provider?.name || 'Prestataire indisponible'}</strong>
+                  <span className="request-status request-status-sent sent-request-badge">Transmise</span>
+                </div>
+                <p className="sent-request-date"><span>Date du mariage :</span> {request.wedding_date ? sentWeddingDateFormatter.format(new Date(`${request.wedding_date}T12:00:00`)) : 'non précisée'}</p>
+                <button type="button" className="text-button sent-request-link" onClick={onNavigateToRequests}>Voir dans Mes demandes</button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       {loading ? (
         <div className="loading-state">Chargement du planning...</div>
       ) : tasks.length === 0 ? (

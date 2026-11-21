@@ -94,7 +94,7 @@ function App() {
         </header>
         <main className="page-content">
           {activePage === 'home' && <Dashboard setActivePage={setActivePage} wedding={wedding} profile={profile} />}
-          {activePage === 'planning' && <PlanningPage wedding={wedding} />}
+          {activePage === 'planning' && <PlanningPage wedding={wedding} onNavigateToRequests={() => setActivePage('requests')} />}
           {activePage === 'budget' && <BudgetPage wedding={wedding} refreshWedding={refreshWedding} />}
           {activePage === 'services' && <ProvidersPage wedding={wedding} userId={user?.id} />}
           {activePage === 'favorites' && <FavoritesPage wedding={wedding} userId={user?.id} onDiscover={() => setActivePage('services')} />}

@@ -20,3 +20,23 @@ export async function listMyContactRequests() {
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
 }
+
+// Phase 6.5: the user's own requests already transmitted to the provider (status 'sent'), for the Planning page.
+// Explicit user_id filter: since Phase 6, contact_requests_select_admin lets admins read every row, so RLS
+// alone would show an admin all users' requests. Plain (left) join to providers, like 4e
+// ("Prestataire indisponible" fallback when the provider is later deactivated).
+// Throws on error; the caller handles it silently.
+export async function listSentContactRequests() {
+  const { data: sessionData } = await supabase.auth.getSession()
+  const userId = sessionData.session?.user?.id
+  if (!userId) return []
+  const { data, error } = await supabase
+    .from('contact_requests')
+    .select('id, wedding_date, created_at, status, provider:providers(name, category:categories(name))')
+    .eq('status', 'sent')
+    .eq('user_id', userId)
+    .order('wedding_date', { ascending: true, nullsFirst: false })
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return data || []
+}

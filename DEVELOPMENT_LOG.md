@@ -204,3 +204,23 @@
   16. Build exit 0, 0 corrupted markers. Preview renders Welcome, Services, Favorites and Budget with zero console messages online. SW activated and controlling; `lamsa-v1` = 13 same-origin static URLs, 0 Supabase / Unsplash / external fonts. Offline reload renders the app shell.
 - Lint: 0 warnings, 0 errors, no suppressions.
 - Phase 4 is complete. Phase 5 has not started.
+
+### Phase 4e — My contact requests screen
+
+- Created: `src/components/contact/MyRequestsPage.jsx`.
+- Modified: `src/services/contactRequestsService.js` (`listMyContactRequests`), `src/App.jsx` (route `requests`, Profile item “Mes demandes de contact”, explicit per-item actions instead of position-based dispatch, `mail` icon, Profile sidebar item highlighted on the requests screen), `src/App.css`.
+- Read-only: no insert/update/delete in `src/components/contact`. No migration, RLS, seed, service-worker or other 4a–4d component change (`git diff 3c0c71c` on those paths is empty).
+- Validation (Playwright, local Supabase, fresh userA/userB):
+  1. Empty state “Vous n’avez pas encore envoyé de demande de contact.” + subtitle + “Découvrir les services”; SQL 0.
+  2. One request sent through the 4c modal → card: provider, “EN ATTENTE”, “Salles de mariage · Tunis”, “Date du mariage : 12 juin 2027”, full two-line message, “Envoyée le 21 novembre 2026 à 13:48”.
+  3. Two requests → “2 demandes envoyées”, Atelier Samira (13:49:00) before Salle Élégance (13:48:58), same as SQL `ORDER BY created_at DESC`.
+  4. Spec §5 note shown verbatim (role=note).
+  5. Loading (GET delayed 1.5 s): `aria-busy=true`, 2 skeleton cards, 0 real cards at 200 ms.
+  6. Offline → “Impossible de charger vos demandes.” + “Réessayer”. 7. Retry online → 2 cards back.
+  8. Superuser `UPDATE … status='sent'` on the test row → “Transmise au prestataire” (12px, uppercase). 9. `status='closed'` → “Fermée”.
+  10. 390 px: one column (354px), scrollWidth 390, back button and CTA 44 px, message 16px, badge 12px.
+  11. userB: empty state; REST 0 rows; SQL as userB 0 rows (0 of userA's); userA keeps 2.
+  12. No `DT`, no `is_urgent` (SQL 0 rows), no suppressions. Build exit 0, 0 corrupted markers. Preview renders Welcome, Services, Favorites, the requests screen and Budget with zero console messages online. `lamsa-v1` = 13 same-origin static URLs, 0 Supabase / Unsplash / external fonts. Offline reload renders the app shell.
+  - Also verified: Profile items Budget / Favoris / Demandes open their screens while Mon projet / Paramètres stay inactive. With a provider deactivated in the local DB, the card shows “Prestataire indisponible” (restored afterwards; 20/20 active).
+- Lint: 0 warnings, 0 errors.
+- Phase 4 is fully complete. Phase 5 has not started.

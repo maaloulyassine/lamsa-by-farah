@@ -83,7 +83,7 @@ Phase 1 foundations are complete:
 
 ## Phase status
 
-**Current phase: Phase 4 — Product functionality — complete (4a planner, 4b budget, 4c providers, 4d favorites). Phase 5 has not started.**
+**Current phase: Phase 4 — Product functionality — fully complete (4a planner, 4b budget, 4c providers, 4d favorites, 4e contact requests). Phase 5 has not started.**
 
 Actual Phase 1 validation:
 
@@ -146,6 +146,10 @@ Actual Phase 2 validation:
   - `src/components/favorites/FavoritesPage.jsx` and `useFavoriteToggle.js` (shared optimistic toggle: per-provider in-flight lock, revert and toast on error).
   - Heart at the top-right of the cover on cards and the detail page (`aria-pressed`, 44 px on mobile / 36 px on desktop). Favorites are refetched on every screen mount; there is no cross-screen cache.
   - Profile “Mes services favoris” now opens Favorites. No migration, RLS or service-worker change.
+- 4e — My contact requests screen: complete (tag `v0.4e-requests`). Phase 4 is fully complete.
+  - `listMyContactRequests()` in `contactRequestsService.js`: one query, newest first, plain (left) join to providers so a request to a provider deactivated later stays listed as “Prestataire indisponible”.
+  - `src/components/contact/MyRequestsPage.jsx`: read-only list (provider, category · governorate, wedding date or “Date non précisée”, full message, status badge En attente / Transmise au prestataire / Fermée, “Envoyée le …” in Africa/Tunis), spec §5 note, loading/error/empty states. Opened from the Profile item “Mes demandes de contact” (`activePage = 'requests'`, back to Profile).
+  - The Profile menu now attaches an explicit action to each item instead of dispatching by position; `mail` icon added. No migration, RLS or service-worker change.
   - `src/components/budget/` (BudgetPage, ExpenseModal, BudgetEditModal), `src/services/expensesService.js`, `src/utils/format.js` (`formatTnd`, `parseTndAmount`, `mutationErrorMessage`).
   - Single ring card (budget total prévu, dépenses réelles payées, restant, % utilisé) plus a separate “Estimations planning (indicatif)” card summing `tasks.estimated_cost`, not deducted from the remaining amount.
   - Overspending whenever remaining < 0, including total budget = 0 with any expense; budget = 0 with no expense shows “Non défini”.
@@ -183,6 +187,8 @@ Actual Phase 2 validation:
 
 ## Known issues and technical decisions
 
+- The Profile header link “Modifier mon profil” is also an inactive placeholder (pre-existing since Phase 1), in addition to the two Profile menu items listed below; same Phase 5 decision applies.
+- Contact request statuses `sent` and `closed` can only be set by the admin policy (`contact_requests_update_admin`), which has no UI or JWT provisioning yet; until then every user-visible request stays “En attente”.
 - Profile menu items 'Mon projet de mariage' and 'Paramètres' are inactive placeholder buttons. They require dedicated screens (project edit, settings) not in MVP scope. Spec §11 rule 'Aucun bouton principal inactif' is partially violated — the app has 2 dead buttons in Profile. Phase 5 consideration: either implement the screens or remove the items.
 - The heart button changes both `aria-pressed` and its `aria-label` (“Ajouter aux favoris” / “Retirer des favoris”), as specified. Some screen readers may announce the state twice; Phase 5 accessibility review can choose a fixed label with `aria-pressed` only.
 - Le filtre de disponibilité prestataire n'est pas implémenté dans le MVP. Le champ `providers.availability_notes` est du texte libre et ne permet pas de répondre de manière fiable à « disponible à la date du mariage ? ». Inventer une disponibilité structurée violerait les règles de démonstration du cahier des charges (§8). Cette fonctionnalité est reportée à une phase future qui ajoutera un champ de disponibilité structuré.

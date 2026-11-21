@@ -8,6 +8,7 @@ import { listWeddingTasks } from './services/tasksService'
 import { BudgetPage } from './components/budget/BudgetPage'
 import { ProvidersPage } from './components/providers/ProvidersPage'
 import { FavoritesPage } from './components/favorites/FavoritesPage'
+import { MyRequestsPage } from './components/contact/MyRequestsPage'
 import { formatTnd } from './utils/format'
 
 const categories = [
@@ -42,6 +43,7 @@ function Icon({ name, size = 20 }) {
     camera: <><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /><circle cx="12" cy="13" r="3" /></>,
     car: <><path d="M5 17h14M5 17a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.5l1.5-3h8l1.5 3H19a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2M5 17a2 2 0 1 0 4 0M15 17a2 2 0 1 0 4 0" /><circle cx="7" cy="17" r="2" /><circle cx="17" cy="17" r="2" /></>,
     check: <><path d="m5 12 4 4L19 6" /><circle cx="12" cy="12" r="9" /></>,
+    mail: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3.5 6.5 8.5 6.5 8.5-6.5" /></>,
     clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
     map: <><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Z" /><path d="M9 3v15M15 6v15" /></>,
   }
@@ -78,7 +80,7 @@ function App() {
           <NavItem icon="wallet" label="Mon budget" active={activePage === 'budget'} onClick={() => { setActivePage('budget'); setMenuOpen(false) }} />
           <NavItem icon="building" label="Trouver un service" active={activePage === 'services'} onClick={() => { setActivePage('services'); setMenuOpen(false) }} />
         </nav>
-        <div className="side-bottom"><NavItem icon="user" label="Mon profil" active={activePage === 'profile'} onClick={() => { setActivePage('profile'); setMenuOpen(false) }} /><p>Votre mariage,<br /><strong>votre signature.</strong></p></div>
+        <div className="side-bottom"><NavItem icon="user" label="Mon profil" active={activePage === 'profile' || activePage === 'requests'} onClick={() => { setActivePage('profile'); setMenuOpen(false) }} /><p>Votre mariage,<br /><strong>votre signature.</strong></p></div>
       </aside>
       <div className="main-column">
         <header className="topbar">
@@ -93,6 +95,7 @@ function App() {
           {activePage === 'services' && <ProvidersPage wedding={wedding} userId={user?.id} />}
           {activePage === 'favorites' && <FavoritesPage wedding={wedding} userId={user?.id} onDiscover={() => setActivePage('services')} />}
           {activePage === 'profile' && <Profile setActivePage={setActivePage} />}
+          {activePage === 'requests' && <MyRequestsPage onBack={() => setActivePage('profile')} onDiscover={() => setActivePage('services')} />}
         </main>
       </div>
     </div>
@@ -158,7 +161,15 @@ function Profile({ setActivePage }) {
   const weddingDate = wedding?.wedding_date
     ? new Date(`${wedding.wedding_date}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
     : 'Projet à compléter'
-  return <><PageTitle eyebrow="Votre espace personnel" title="Mon profil" /><section className="profile-header content-card"><div className="large-avatar">{initial}</div><div><h2>{profile?.full_name || 'Votre profil'}</h2><p>{user?.email}</p><button className="text-button">Modifier mon profil <Icon name="arrow" size={14} /></button></div></section><div className="profile-menu content-card">{[['calendar', 'Mon projet de mariage', weddingDate], ['wallet', 'Mon budget', formatTnd(wedding?.total_budget)], ['heart', 'Mes services favoris', 'Vos prestataires enregistrés'], ['user', 'Paramètres', 'Préférences et sécurité']].map(([icon, label, meta], index) => <button key={label} onClick={() => { if (index === 1) setActivePage('budget'); if (index === 2) setActivePage('favorites') }}><span className="profile-menu-icon"><Icon name={icon} size={19} /></span><span><strong>{label}</strong><small>{meta}</small></span><Icon name="chevron" size={17} /></button>)}</div><button className="logout-button" onClick={signOut}>Se déconnecter</button></>
+  // Explicit action per item (no index-based dispatch). `page: null` = inactive placeholder (see Known issues).
+  const menuItems = [
+    { icon: 'calendar', label: 'Mon projet de mariage', meta: weddingDate, page: null },
+    { icon: 'wallet', label: 'Mon budget', meta: formatTnd(wedding?.total_budget), page: 'budget' },
+    { icon: 'heart', label: 'Mes services favoris', meta: 'Vos prestataires enregistrés', page: 'favorites' },
+    { icon: 'mail', label: 'Mes demandes de contact', meta: 'Suivi de vos demandes aux prestataires', page: 'requests' },
+    { icon: 'user', label: 'Paramètres', meta: 'Préférences et sécurité', page: null },
+  ]
+  return <><PageTitle eyebrow="Votre espace personnel" title="Mon profil" /><section className="profile-header content-card"><div className="large-avatar">{initial}</div><div><h2>{profile?.full_name || 'Votre profil'}</h2><p>{user?.email}</p><button className="text-button">Modifier mon profil <Icon name="arrow" size={14} /></button></div></section><div className="profile-menu content-card">{menuItems.map(({ icon, label, meta, page }) => <button key={label} onClick={() => { if (page) setActivePage(page) }}><span className="profile-menu-icon"><Icon name={icon} size={19} /></span><span><strong>{label}</strong><small>{meta}</small></span><Icon name="chevron" size={17} /></button>)}</div><button className="logout-button" onClick={signOut}>Se déconnecter</button></>
 }
 
 export default App

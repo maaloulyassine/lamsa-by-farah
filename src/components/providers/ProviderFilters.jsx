@@ -1,8 +1,8 @@
 import { useState } from 'react'
 
-const RATING_OPTIONS = [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]
+// Price, rating and sort controls removed (Phase 6.6): no real pricing/review data yet.
 
-export function ProviderFilters({ filters, activeCount, onChange, onClear, categories, governorates, optionsLoading, optionsError, onRetryOptions, priceError }) {
+export function ProviderFilters({ filters, activeCount, onChange, onClear, categories, governorates, optionsLoading, optionsError, onRetryOptions }) {
   const [open, setOpen] = useState(false)
   const set = (key) => (event) => onChange(key, event.target.value)
   const selectsDisabled = optionsLoading || Boolean(optionsError)
@@ -51,37 +51,9 @@ export function ProviderFilters({ filters, activeCount, onChange, onClear, categ
             {governorates.map((governorate) => <option key={governorate.id} value={governorate.id}>{governorate.name}</option>)}
           </select>
         </label>
-        <label>
-          Prix min (TND)
-          <input type="number" inputMode="decimal" min="0" step="100" value={filters.priceMin} onChange={set('priceMin')} placeholder="0" />
-        </label>
-        <label>
-          Prix max (TND)
-          <input type="number" inputMode="decimal" min="0" step="100" value={filters.priceMax} onChange={set('priceMax')} placeholder="Sans limite" />
-        </label>
-        <label>
-          Note minimale
-          <select value={filters.ratingMin} onChange={set('ratingMin')}>
-            {RATING_OPTIONS.map((value) => (
-              <option key={value} value={String(value)}>
-                {value === 0 ? 'Toutes les notes' : `${value.toLocaleString('fr-FR')} ★ et plus`}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Trier par
-          <select value={filters.sort} onChange={set('sort')}>
-            <option value="name">Nom (A → Z)</option>
-            <option value="price_asc">Prix croissant</option>
-            <option value="price_desc">Prix décroissant</option>
-            <option value="rating_desc">Meilleure note</option>
-          </select>
-        </label>
-        <button type="button" className="text-button provider-clear" onClick={onClear} disabled={activeCount === 0 && filters.sort === 'name'}>
+        <button type="button" className="text-button provider-clear" onClick={onClear} disabled={activeCount === 0}>
           Effacer les filtres
         </button>
-        {priceError && <p className="auth-message error provider-price-error" role="alert">{priceError}</p>}
       </div>
     </section>
   )

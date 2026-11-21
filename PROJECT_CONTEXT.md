@@ -14,8 +14,8 @@ The complete approved product and technical specification is in [`Lamsa_by_Farah
 - Use React, Vite, JavaScript, and CSS.
 - Use Supabase later for PostgreSQL, Auth, and optional Storage.
 - Deploy the static frontend through GitHub Pages; GitHub Pages is not a backend.
-- Use demonstration provider data in the MVP; providers do not self-register.
-- Keep provider data explicitly fictitious/demo data; do not invent authentic businesses, reviews, or availability.
+- Providers do not self-register. Since Phase 6.6 the catalogue holds real providers from the owner's manual research (Nov 2026) instead of demonstration data (approved by the project owner); the 20 demo providers were removed.
+- Do not invent businesses, reviews, prices, or availability: ratings are marked indicative (4.5 placeholder, 0 reviews), prices and availability are left empty.
 - Support the ten approved provider categories, Tunisian governorate filtering, search, price/rating filters, availability display, provider detail, favorites, and non-guaranteed contact requests.
 - Support one active wedding project per user in the MVP.
 - Generate planning tasks deterministically from the wedding date and optional preparation-start date. The generated plan must remain fully editable.
@@ -120,7 +120,7 @@ The MVP is deployed and publicly accessible.
 
 **Deployed state:**
 - All Phase 4a–4e features live and verified end-to-end
-- Cloud database seeded: 24 governorates, 10 categories, 20 demo providers
+- Cloud database seeded: 24 governorates, 10 categories, 189 real providers (Phase 6.6; the 20 demo providers were removed)
 - Cloud migrations: `20261120000001` → `20261121000005` (5, including the `phase4f_grants` migration)
 - RLS verified in production: anonymous gets 42501 on all private tables; cross-user isolation confirmed with two test accounts
 - Service worker active at `/lamsa-by-farah/` scope; cache `lamsa-v1` contains only static assets
@@ -205,6 +205,15 @@ The MVP is deployed and publicly accessible.
 - `listSentContactRequests()` in `contactRequestsService.js`: own requests only (explicit `user_id` filter, because `contact_requests_select_admin` would otherwise show an admin everyone's requests), plain join to providers ("Prestataire indisponible" fallback), ordered by wedding date ascending (no date last), then newest first.
 - Fails silently (console warning) so Planning never breaks; no skeleton, the section simply appears when there is content. "Voir dans Mes demandes" opens the 4e screen via an `onNavigateToRequests` prop from `App.jsx`.
 
+### Phase 6.6 — Real provider data — complete
+
+- 189 real providers (`is_demo = false`, `data_source = 'manual_research'`, `last_verified_at = 2026-11-21`) replace the 20 demo providers: 184 complete entries from the owner's research PDF + 5 Tunis venues with `phone = NULL`. Coverage: Tunis 36, Ariana 2, Nabeul (Hammamet) 28, Sousse 49, Monastir 42, Bizerte 32; all 10 categories.
+- Migration `20261121000007_phase6_6_provider_traceability.sql`: deletes demo providers (and favorites / contact requests referencing them), adds `providers.data_source` and `providers.last_verified_at`. Reversal in `supabase/reversals/` (columns only; demo rows come back from the previous `seed.sql` in git).
+- `supabase/seed.sql` regenerated (idempotent `ON CONFLICT (slug) DO UPDATE`); phones normalized to `+216 XX XXX XXX`; no images, no prices, rating 4.5 / 0 reviews.
+- UI: demo badge removed; rating shown as "★ 4,5" on cards and "Note indicative — aucun avis réel pour le moment." on the detail page; empty availability and missing phone have French fallbacks ("Disponibilité non renseignée…", "Téléphone non renseigné"); catalogue note no longer claims fictitious data.
+- Price, rating and sort controls removed from the catalogue (search, category, governorate and clear remain); `listProviders` filters by category and governorate and orders by name.
+- Cloud seeding note: `db push --include-seed` only recorded the new seed hash, so the seed was run with `npx supabase db query --remote --file supabase/seed.sql --yes`.
+
 ### Phase 5 — Quality and delivery
 
 - Run focused functional, responsive, accessibility, security, and RLS validation.
@@ -232,7 +241,12 @@ The MVP is deployed and publicly accessible.
 - Profile menu items 'Mon projet de mariage' and 'Paramètres' are inactive placeholder buttons. They require dedicated screens (project edit, settings) not in MVP scope. Spec §11 rule 'Aucun bouton principal inactif' is partially violated — the app has 2 dead buttons in Profile. Phase 5 consideration: either implement the screens or remove the items.
 - The heart button changes both `aria-pressed` and its `aria-label` (“Ajouter aux favoris” / “Retirer des favoris”), as specified. Some screen readers may announce the state twice; Phase 5 accessibility review can choose a fixed label with `aria-pressed` only.
 - Le filtre de disponibilité prestataire n'est pas implémenté dans le MVP. Le champ `providers.availability_notes` est du texte libre et ne permet pas de répondre de manière fiable à « disponible à la date du mariage ? ». Inventer une disponibilité structurée violerait les règles de démonstration du cahier des charges (§8). Cette fonctionnalité est reportée à une phase future qui ajoutera un champ de disponibilité structuré.
-- Seed demo gaps (Phase 5 polish): the 20 demo providers have NULL availability_notes, phone, website, social_url, cover_image_url, and empty gallery. Cards use gradient placeholders + category icons. Provider detail shows « Non renseignée » for missing availability with the disclaimer. Enrich seed data in Phase 5.
+- Price and rating filters are hidden in the current release because real pricing and review data has not been collected yet. The database schema supports them (price_from, price_to, rating, review_count) and they will be re-enabled when real data is added.
+- Provider coverage: 5 governorates only (Tunis, Nabeul, Sousse, Monastir, Bizerte) plus 2 providers in Ariana moved from the Tunis section by address; the remaining 18 governorates are deferred. More providers can be added with the same seed pattern.
+- Real reviews are not available: every provider has a 4.5 placeholder rating and 0 reviews, labelled as indicative in the UI.
+- 5 Tunis venues (Allians Wedding Venue, El Firma, El Khima, Espace Fête Prestige, Salle des Fêtes L'Émeraude) have `phone = NULL`, awaiting the owner's research; the detail page shows « Téléphone non renseigné ».
+- Real providers have no cover images (gradient placeholder + category icon), no prices (« Tarif sur demande »), no availability notes, website or social links yet.
+- Demo providers are fully removed (local and cloud); 2 cloud contact requests that referenced them were deleted by the Phase 6.6 migration.
 - Dashboard quick-tile categories are hardcoded Phase 1 tuples. Cosmetic — deferred to Phase 5 cleanup.
 - All 20 seeded providers have rating ≥ 4.5, so the 4.5 ★ filter excludes none in the current seed; filtering exclusion was verified at 5 ★ (0 results).
 - Vite/rolldown production build was broken from v0.3-supabase onward: the bundle contained corrupted preload markers (`void 0<hash>`), causing a blank page in the browser. Fixed in `7d42dbe` by Vite downgrade to 7.x (`vite@^7.3.8`, `@vitejs/plugin-react@^5.2.0`). Future Vite major upgrades must include a manual preview smoke test, not just `npm run build` exit 0.

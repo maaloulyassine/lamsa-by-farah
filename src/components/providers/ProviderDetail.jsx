@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { getProviderById } from '../../services/providersService'
 import { formatRating, formatTndRange } from '../../utils/format'
 import { ContactRequestModal } from './ContactRequestModal'
-import { DemoBadge, FavoriteButton, ProviderCover } from './ProviderCard'
+import { FavoriteButton, ProviderCover } from './ProviderCard'
 
 function galleryUrls(gallery) {
   if (!Array.isArray(gallery)) return []
@@ -81,33 +81,35 @@ export function ProviderDetail({ providerId, wedding, userId, onBack, onSent, ba
 
       <div className="provider-detail-grid">
         <div className="provider-detail-main content-card">
-          {provider.is_demo && <DemoBadge />}
           <h1 id="provider-detail-title">{provider.name}</h1>
           <p className="provider-detail-meta">{meta}</p>
           <p className="provider-detail-rating">
             {hasRating
-              ? <><b>{formatRating(provider.rating)} ★</b> ({provider.review_count} avis)</>
+              ? <><b>{formatRating(provider.rating)} ★</b>{Number(provider.review_count) > 0 && <> ({provider.review_count} avis)</>}</>
               : 'Pas encore d’avis'}
           </p>
+          {hasRating && Number(provider.review_count) === 0 && (
+            <p className="provider-rating-note" role="note">Note indicative — aucun avis réel pour le moment.</p>
+          )}
           {provider.description && <p className="provider-detail-description">{provider.description}</p>}
           {provider.address && <p className="provider-detail-address"><span>Adresse :</span> {provider.address}</p>}
 
           <div className="provider-availability">
             <h2>Disponibilité déclarée</h2>
-            <p data-testid="availability-notes">{provider.availability_notes?.trim() || 'Non renseignée'}</p>
+            <p data-testid="availability-notes">{provider.availability_notes?.trim() || 'Disponibilité non renseignée. Contactez le prestataire directement.'}</p>
             <p className="provider-availability-disclaimer" role="note">
               Disponibilité déclarée par le prestataire — non garantie. Cette information ne constitue pas une confirmation de réservation.
             </p>
           </div>
 
-          {(provider.phone || provider.website || provider.social_url) && (
-            <div className="provider-contact-links">
-              <h2>Coordonnées</h2>
-              {provider.phone && <a href={`tel:${provider.phone.replace(/\s+/g, '')}`}>{provider.phone}</a>}
-              {provider.website && <a href={externalUrl(provider.website)} target="_blank" rel="noopener noreferrer">Site web</a>}
-              {provider.social_url && <a href={externalUrl(provider.social_url)} target="_blank" rel="noopener noreferrer">Réseaux sociaux</a>}
-            </div>
-          )}
+          <div className="provider-contact-links">
+            <h2>Coordonnées</h2>
+            {provider.phone
+              ? <a href={`tel:${provider.phone.replace(/\s+/g, '')}`}>{provider.phone}</a>
+              : <p className="provider-phone-missing">Téléphone non renseigné</p>}
+            {provider.website && <a href={externalUrl(provider.website)} target="_blank" rel="noopener noreferrer">Site web</a>}
+            {provider.social_url && <a href={externalUrl(provider.social_url)} target="_blank" rel="noopener noreferrer">Réseaux sociaux</a>}
+          </div>
         </div>
 
         <aside className="provider-price-card content-card">

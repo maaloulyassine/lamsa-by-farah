@@ -51,10 +51,6 @@ export function FavoriteButton({ providerName, isFavorite, pending, onToggle }) 
   )
 }
 
-export function DemoBadge() {
-  return <span className="provider-demo-badge">Exemple de démonstration</span>
-}
-
 export function ProviderCard({ provider, onOpen, isFavorite = false, favoritePending = false, onToggleFavorite }) {
   const location = [provider.city, provider.governorate?.name].filter(Boolean).join(', ')
   return (
@@ -66,12 +62,11 @@ export function ProviderCard({ provider, onOpen, isFavorite = false, favoritePen
         )}
       </div>
       <div className="provider-body">
-        <div className="provider-card-badges">{provider.is_demo && <DemoBadge />}</div>
         <h3 className="provider-name">{provider.name}</h3>
         <p className="provider-meta">{provider.category?.name}</p>
         <p className="provider-meta">{location}</p>
-        {Number(provider.review_count) > 0 && (
-          <p className="provider-rating"><b>{formatRating(provider.rating)} ★</b> <small>({provider.review_count} avis)</small></p>
+        {Number(provider.rating) > 0 && (
+          <p className="provider-rating"><b>★ {formatRating(provider.rating)}</b></p>
         )}
         <div className="provider-footer">
           <strong className="provider-price">{formatTndRange(provider.price_from, provider.price_to)}</strong>

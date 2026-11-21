@@ -405,3 +405,8 @@ h3 { font-size: 14px; margin-bottom: 0; }
 @media (max-width: 650px) {
   .sent-requests-list { grid-template-columns: 1fr; }
 }
+
+/* ===== Phase 6.6 — Real providers ===== */
+.provider-rating-note { margin: -4px 0 0; color: var(--muted); font-size: 11px; font-style: italic; }
+
+.provider-phone-missing { margin: 0; color: var(--muted); font-size: 13px; }

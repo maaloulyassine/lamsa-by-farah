@@ -10,28 +10,13 @@ const EMPTY_FILTERS = {
   search: '',
   categoryId: '',
   governorateId: '',
-  priceMin: '',
-  priceMax: '',
-  ratingMin: '0',
-  sort: 'name',
 }
 const FILTER_DEBOUNCE_MS = 250
 const SUCCESS_TIMEOUT_MS = 5000
 const CONTACT_SUCCESS = 'Votre demande a été envoyée. Le prestataire doit confirmer sa disponibilité.'
 
 function countActiveFilters(filters) {
-  return ['search', 'categoryId', 'governorateId', 'priceMin', 'priceMax'].filter((key) => String(filters[key]).trim() !== '').length
-    + (Number(filters.ratingMin) > 0 ? 1 : 0)
-}
-
-function getPriceError({ priceMin, priceMax }) {
-  const min = priceMin === '' ? null : Number(priceMin)
-  const max = priceMax === '' ? null : Number(priceMax)
-  if ((min !== null && (!Number.isFinite(min) || min < 0)) || (max !== null && (!Number.isFinite(max) || max < 0))) {
-    return 'Les prix doivent être des nombres positifs.'
-  }
-  if (min !== null && max !== null && min > max) return 'Le prix minimum doit être inférieur ou égal au prix maximum.'
-  return ''
+  return ['search', 'categoryId', 'governorateId'].filter((key) => String(filters[key]).trim() !== '').length
 }
 
 function SkeletonCards() {
@@ -60,12 +45,8 @@ export function ProvidersPage({ wedding, userId }) {
   const [favoritesLoading, setFavoritesLoading] = useState(true)
   const [favoritesError, setFavoritesError] = useState('')
 
-  const { categoryId, governorateId, priceMin, priceMax, ratingMin, sort } = filters
-  const priceError = getPriceError(filters)
-  const serverFilters = useMemo(
-    () => ({ categoryId, governorateId, priceMin, priceMax, ratingMin, sort }),
-    [categoryId, governorateId, priceMin, priceMax, ratingMin, sort],
-  )
+  const { categoryId, governorateId } = filters
+  const serverFilters = useMemo(() => ({ categoryId, governorateId }), [categoryId, governorateId])
 
   // Filter dropdown data (categories + governorates).
   const applyOptions = useCallback(([catRes, govRes]) => {
@@ -129,10 +110,9 @@ export function ProvidersPage({ wedding, userId }) {
   }, [])
 
   useEffect(() => {
-    if (priceError) return undefined
     const timer = setTimeout(() => refetch(serverFilters), FILTER_DEBOUNCE_MS)
     return () => clearTimeout(timer)
-  }, [serverFilters, priceError, refetch])
+  }, [serverFilters, refetch])
 
   useEffect(() => {
     if (!success) return undefined
@@ -190,9 +170,7 @@ export function ProvidersPage({ wedding, userId }) {
   }
 
   let listContent
-  if (priceError) {
-    listContent = null
-  } else if (listLoading) {
+  if (listLoading) {
     listContent = <SkeletonCards />
   } else if (listError) {
     listContent = <div className="error-banner" role="alert"><span>Les prestataires n’ont pas pu être chargés.</span><button type="button" onClick={() => refetch(serverFilters)}>Réessayer</button></div>
@@ -228,15 +206,14 @@ export function ProvidersPage({ wedding, userId }) {
         optionsLoading={optionsLoading}
         optionsError={optionsError}
         onRetryOptions={retryOptions}
-        priceError={priceError}
       />
       <div className="section-heading">
         <h2>Prestataires</h2>
-        {!listLoading && !listError && !priceError && (
+        {!listLoading && !listError && (
           <span data-testid="provider-count">{visibleProviders.length} résultat{visibleProviders.length > 1 ? 's' : ''}</span>
         )}
       </div>
-      <p className="provider-demo-note">Les prestataires affichés sont des exemples de démonstration fictifs. Prix et disponibilités indicatifs.</p>
+      <p className="provider-demo-note">Coordonnées issues de recherches manuelles. Notes, prix et disponibilités indicatifs : contactez directement le prestataire.</p>
       {listContent}
     </section>
   )

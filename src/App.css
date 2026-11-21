@@ -373,3 +373,19 @@ h3 { font-size: 14px; margin-bottom: 0; }
 .request-card-skeleton span:nth-child(2) { height: 48px; }
 .requests-empty p { margin: 4px 0 0; }
 .requests-empty .primary-button { margin-top: 14px; }
+
+/* ===== Phase 6 — Admin requests (post-MVP bonus) ===== */
+.admin-tabs { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; margin: 4px 0 16px; -webkit-overflow-scrolling: touch; }
+.admin-tabs::-webkit-scrollbar { display: none; }
+.admin-tab { flex: 0 0 auto; min-height: 44px; padding: 0 16px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.7); color: var(--deep); font-size: 12px; white-space: nowrap; }
+.admin-tab.active { background: var(--deep); border-color: var(--deep); color: white; font-weight: 600; }
+.request-client { margin: 0; color: var(--muted); font-size: 12px; }
+.request-client span { color: var(--ink); font-weight: 600; }
+.request-client a { color: var(--terracotta); display: inline-flex; align-items: center; min-height: 44px; padding: 0 2px; }
+.admin-request-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.admin-request-actions button { min-height: 44px; padding: 0 18px; justify-content: center; }
+.admin-request-actions button:disabled { opacity: .55; cursor: progress; }
+.admin-toast { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 8px); z-index: 30; }
+@media (max-width: 650px) {
+  .admin-request-actions button { flex: 1 1 140px; }
+}

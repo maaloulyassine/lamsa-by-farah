@@ -190,6 +190,15 @@ The MVP is deployed and publicly accessible.
 - ~~Complete combined provider filters and provider detail/contact flow.~~ Done in 4c (no availability filter, see Known issues).
 - Persist user-specific favorites.
 
+### Phase 6 — Minimal admin panel for contact requests — post-MVP bonus (complete)
+
+- **Post-MVP bonus, not part of the original specification** (§12 excludes a complete admin panel). Demonstrates the contact-request lifecycle only.
+- Migration `20261121000006_phase6_admin_rls.sql` (applied locally and on the cloud project): adds `contact_requests_select_admin` and `profiles_select_admin` (no existing policy changed) and the `contact_requests_admin_column_guard` trigger. Reversal in `supabase/reversals/`.
+- Admin = `app_metadata.is_admin === true` in the JWT, read in the app from `useAuth().user`. Promotion is done in the Supabase SQL Editor only (see README "Admin panel (post-MVP)"); the user must sign out and back in.
+- Profile shows **"Admin — Demandes"** only for admins → `AdminRequestsPage` (`src/components/admin/`): every request across users, filter tabs Toutes / En attente / Transmises / Fermées, actions "Marquer transmise" (pending → sent) and "Fermer" (→ closed, native confirm), client name and phone from `profiles`.
+- `src/services/adminService.js` uses two queries (requests + providers, then profiles by user ids) because `contact_requests.user_id` references `auth.users`, not `profiles`.
+- Out of scope: delete, edits, notifications, provider responses, promotion UI.
+
 ### Phase 5 — Quality and delivery
 
 - Run focused functional, responsive, accessibility, security, and RLS validation.
@@ -212,7 +221,8 @@ The MVP is deployed and publicly accessible.
 ## Known issues and technical decisions
 
 - The Profile header link “Modifier mon profil” is also an inactive placeholder (pre-existing since Phase 1), in addition to the two Profile menu items listed below; same Phase 5 decision applies.
-- Contact request statuses `sent` and `closed` can only be set by the admin policy (`contact_requests_update_admin`), which has no UI or JWT provisioning yet; until then every user-visible request stays “En attente”.
+- Contact request statuses `sent` and `closed` are set from the Phase 6 admin screen (post-MVP bonus) by users promoted with `app_metadata.is_admin`; without a promoted admin, every request stays “En attente”.
+- Column guard blocks content edits from service_role and Dashboard SQL when auth.uid() is NULL (it treats any non-owner as an admin). Correct security behavior — admins should never modify client content; status-only updates still work. For manual fixes: `ALTER TABLE contact_requests DISABLE TRIGGER contact_requests_admin_column_guard;` → `UPDATE …;` → `ALTER TABLE contact_requests ENABLE TRIGGER contact_requests_admin_column_guard;`.
 - Profile menu items 'Mon projet de mariage' and 'Paramètres' are inactive placeholder buttons. They require dedicated screens (project edit, settings) not in MVP scope. Spec §11 rule 'Aucun bouton principal inactif' is partially violated — the app has 2 dead buttons in Profile. Phase 5 consideration: either implement the screens or remove the items.
 - The heart button changes both `aria-pressed` and its `aria-label` (“Ajouter aux favoris” / “Retirer des favoris”), as specified. Some screen readers may announce the state twice; Phase 5 accessibility review can choose a fixed label with `aria-pressed` only.
 - Le filtre de disponibilité prestataire n'est pas implémenté dans le MVP. Le champ `providers.availability_notes` est du texte libre et ne permet pas de répondre de manière fiable à « disponible à la date du mariage ? ». Inventer une disponibilité structurée violerait les règles de démonstration du cahier des charges (§8). Cette fonctionnalité est reportée à une phase future qui ajoutera un champ de disponibilité structuré.

@@ -9,6 +9,7 @@ import { BudgetPage } from './components/budget/BudgetPage'
 import { ProvidersPage } from './components/providers/ProvidersPage'
 import { FavoritesPage } from './components/favorites/FavoritesPage'
 import { MyRequestsPage } from './components/contact/MyRequestsPage'
+import { AdminRequestsPage } from './components/admin/AdminRequestsPage'
 import { formatTnd } from './utils/format'
 
 const categories = [
@@ -43,6 +44,7 @@ function Icon({ name, size = 20 }) {
     camera: <><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /><circle cx="12" cy="13" r="3" /></>,
     car: <><path d="M5 17h14M5 17a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.5l1.5-3h8l1.5 3H19a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2M5 17a2 2 0 1 0 4 0M15 17a2 2 0 1 0 4 0" /><circle cx="7" cy="17" r="2" /><circle cx="17" cy="17" r="2" /></>,
     check: <><path d="m5 12 4 4L19 6" /><circle cx="12" cy="12" r="9" /></>,
+    shield: <><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.4 7.5 9.5 4.3-1.1 7.5-4.9 7.5-9.5V6L12 3Z" /><path d="m9 12 2 2 4-4" /></>,
     mail: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3.5 6.5 8.5 6.5 8.5-6.5" /></>,
     clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
     map: <><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Z" /><path d="M9 3v15M15 6v15" /></>,
@@ -52,6 +54,8 @@ function Icon({ name, size = 20 }) {
 
 function App() {
   const { user, profile, wedding, loading, error, sessionExpired, refreshWedding } = useAuth()
+  // Phase 6: admin flag from the JWT's app_metadata (server-side only); RLS enforces it anyway.
+  const isAdmin = user?.app_metadata?.is_admin === true
   const [authMode, setAuthMode] = useState(null)
   const [activePage, setActivePage] = useState('home')
   const [menuOpen, setMenuOpen] = useState(false)
@@ -80,7 +84,7 @@ function App() {
           <NavItem icon="wallet" label="Mon budget" active={activePage === 'budget'} onClick={() => { setActivePage('budget'); setMenuOpen(false) }} />
           <NavItem icon="building" label="Trouver un service" active={activePage === 'services'} onClick={() => { setActivePage('services'); setMenuOpen(false) }} />
         </nav>
-        <div className="side-bottom"><NavItem icon="user" label="Mon profil" active={activePage === 'profile' || activePage === 'requests'} onClick={() => { setActivePage('profile'); setMenuOpen(false) }} /><p>Votre mariage,<br /><strong>votre signature.</strong></p></div>
+        <div className="side-bottom"><NavItem icon="user" label="Mon profil" active={activePage === 'profile' || activePage === 'requests' || activePage === 'admin-requests'} onClick={() => { setActivePage('profile'); setMenuOpen(false) }} /><p>Votre mariage,<br /><strong>votre signature.</strong></p></div>
       </aside>
       <div className="main-column">
         <header className="topbar">
@@ -96,6 +100,7 @@ function App() {
           {activePage === 'favorites' && <FavoritesPage wedding={wedding} userId={user?.id} onDiscover={() => setActivePage('services')} />}
           {activePage === 'profile' && <Profile setActivePage={setActivePage} />}
           {activePage === 'requests' && <MyRequestsPage onBack={() => setActivePage('profile')} onDiscover={() => setActivePage('services')} />}
+          {activePage === 'admin-requests' && isAdmin && <AdminRequestsPage onBack={() => setActivePage('profile')} />}
         </main>
       </div>
     </div>
@@ -157,6 +162,7 @@ function TaskRow({ task, onToggle }) {
 
 function Profile({ setActivePage }) {
   const { signOut, profile, user, wedding } = useAuth()
+  const isAdmin = user?.app_metadata?.is_admin === true
   const initial = profile?.full_name?.trim()?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'F'
   const weddingDate = wedding?.wedding_date
     ? new Date(`${wedding.wedding_date}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -167,6 +173,7 @@ function Profile({ setActivePage }) {
     { icon: 'wallet', label: 'Mon budget', meta: formatTnd(wedding?.total_budget), page: 'budget' },
     { icon: 'heart', label: 'Mes services favoris', meta: 'Vos prestataires enregistrés', page: 'favorites' },
     { icon: 'mail', label: 'Mes demandes de contact', meta: 'Suivi de vos demandes aux prestataires', page: 'requests' },
+    ...(isAdmin ? [{ icon: 'shield', label: 'Admin — Demandes', meta: 'Bonus post-MVP · toutes les demandes', page: 'admin-requests' }] : []),
     { icon: 'user', label: 'Paramètres', meta: 'Préférences et sécurité', page: null },
   ]
   return <><PageTitle eyebrow="Votre espace personnel" title="Mon profil" /><section className="profile-header content-card"><div className="large-avatar">{initial}</div><div><h2>{profile?.full_name || 'Votre profil'}</h2><p>{user?.email}</p><button className="text-button">Modifier mon profil <Icon name="arrow" size={14} /></button></div></section><div className="profile-menu content-card">{menuItems.map(({ icon, label, meta, page }) => <button key={label} onClick={() => { if (page) setActivePage(page) }}><span className="profile-menu-icon"><Icon name={icon} size={19} /></span><span><strong>{label}</strong><small>{meta}</small></span><Icon name="chevron" size={17} /></button>)}</div><button className="logout-button" onClick={signOut}>Se déconnecter</button></>

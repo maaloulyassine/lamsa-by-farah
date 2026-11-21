@@ -240,3 +240,36 @@
 - Verified RLS in production: anonymous 42501 on private tables; two-user isolation confirmed (User B sees 0 rows of User A; bulk UPDATE/DELETE affect 0 rows; provider insert blocked by RLS)
 - Deployment workflow run 44913030887: success
 - Test accounts `lamsa-deploy-check-*@example.test` remain in the cloud project (removal and Supabase token revocation left to the project owner)
+
+### 2026-11-21 — Phase 5a: French auth error messages (commit 35dba58)
+
+- Added `src/utils/authErrors.js` (`translateAuthError`): maps Supabase Auth messages to French — invalid credentials, email not confirmed, already registered, password under 6 characters, invalid email (incl. GoTrue's “Unable to validate email address: invalid format”), rate limit — with a generic French fallback.
+- `src/pages/AuthPages.jsx`: only Supabase-returned sign-in/sign-up errors are translated; app-side French messages unchanged. The form uses `noValidate` (app pattern) with French checks for empty email/password, so browser-native validation no longer hides the scenarios.
+- Verified locally against real GoTrue responses (400/422): wrong password and unknown email → “Email ou mot de passe incorrect.”; existing email → “Un compte existe déjà avec cet email.”; short password → “Le mot de passe doit contenir au moins 6 caractères.”; invalid email → “Adresse email invalide.”. Verified live: wrong password → French message. Lint 0/0, build OK, CI run 44915830026 success.
+- Remaining English outside the auth forms: the space-loading error screen and wedding-setup save errors can show raw messages.
+
+### 2026-11-21 — Phase 6: minimal admin panel for contact requests (post-MVP bonus)
+
+- Post-MVP bonus, not part of the original spec (§12). Migration `20261121000006_phase6_admin_rls.sql` + reversal; `src/services/adminService.js`; `src/components/admin/AdminRequestsPage.jsx` and `AdminRequestCard.jsx`; `App.jsx` (admin flag from `app_metadata`, conditional “Admin — Demandes” item, `admin-requests` page, shield icon); `App.css`; README section with the promotion flow.
+- Column guard rationale: `contact_requests_update_admin` (Phase 3c) only checks `is_admin`, and RLS cannot restrict columns, so once admins can read rows they could rewrite `message`, `user_id`, `provider_id`, `wedding_date`. The BEFORE UPDATE trigger rejects any non-status change by a non-owner. It fires before `contact_requests_set_updated_at` (alphabetical order), so `updated_at` is never seen as a change.
+- Known issue: Column guard blocks content edits from service_role and Dashboard SQL when auth.uid() is NULL. Correct security behavior. For manual fixes: ALTER TABLE contact_requests DISABLE TRIGGER contact_requests_admin_column_guard; UPDATE...; ENABLE TRIGGER.
+- Validation (local stack, users A/B/C; promotion via local SQL):
+  1. Local `pg_policies`: 10 rows (contact_requests 5, profiles 5).
+  2. Cloud: dry run listed only `20261121000006`; push applied it; read-only `pg_policies` → same 10 rows; trigger `contact_requests_admin_column_guard` present; 6 migrations recorded.
+  3. Non-admin menu: no “Admin — Demandes”; JWT has no flag; API read of all requests → 0 rows before promotion.
+  4. `UPDATE auth.users SET raw_app_meta_data = raw_app_meta_data || '{"is_admin": true}'` → `is_admin = true`.
+  5. After sign-out/in: menu shows “Admin — Demandes”; fresh JWT carries `is_admin: true`; admin's own “Mes demandes” still lists only their requests.
+  6. Admin page lists every request (SQL 4 total / 2 users = 4 cards; rerun 9 = 9), with client name and phone; “2 demandes en attente”.
+  7–9. Tabs En attente / Transmises / Fermées show only pending / sent / closed.
+  10. “Marquer transmise”: optimistic at 80 ms, toast “Demande marquée comme transmise.”, SQL `sent`, `updated_at` bumped.
+  11. Client B's “Mes demandes” shows “TRANSMISE AU PRESTATAIRE”.
+  12. “Fermer”: native confirm, toast “Demande fermée.”, SQL `closed`; client C sees “FERMÉE”.
+  13. Non-admin update of another user's request → 200, 0 rows; status unchanged.
+  14. Non-admin read → only own rows; another user's rows → 0; profiles → own row only.
+  15. Admin reads all requests (= SQL total) and all profiles.
+  16. Admin gains nothing else: others' weddings/tasks/expenses/favorites → 0 rows; updates to weddings/providers/profiles → 0 rows; provider insert and insert on behalf of another user → 403; delete → 0 rows.
+  17. 390 px: single column, scrollable tabs, page width 390, every control 44 px (the phone `tel:` link was 16 px and was fixed to 44 px).
+  18. No `DT`/`is_urgent`; lint 0/0; build OK (0 corrupted markers); preview renders all screens with zero console messages; `lamsa-v1` = 13 same-origin entries, 0 supabase.co; offline shell renders.
+  19. Column guard: owner edits own pending message → 200; admin edits message / wedding date → 400 P0001 “Admins may only update the status column of contact requests”; admin edits status → 200 `sent`.
+  20. Owners' “Mes demandes de contact” screens load without error after the new policies and trigger.
+- Phase 6 complete. Phase 5b–5e still pending.

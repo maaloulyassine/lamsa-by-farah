@@ -108,3 +108,17 @@
 - Pre-step 0 confirmed: no module-level `Date` initialization remains in `src/`.
 - 4b has not started.
 
+### 4a sign-off validation
+
+- Fixed calendar stacking at desktop widths: `.calendar-card`, `.day-card`, `.month-header`, and month arrows now use isolated positioning/z-index values.
+- Verified next/previous month arrows at 1280×720 and 1366×768.
+- Verified 390×844 mobile planning layout: single-column calendar and day list, 44px planning controls, single-column task modal, native date/time inputs, and reachable Save/Cancel actions.
+- Verified the edited-generated-task regeneration warning includes the exact secondary sentence.
+- Verified userB with an empty personal planning sees no userA tasks and an empty Dashboard next-task state.
+- Confirmed `PlanningPage.jsx` is 237 lines and TaskList/MonthCalendar components were inlined there.
+- Verified `is_urgent` does not exist in `tasks`.
+- Verified native French TND formatting and a persisted task with `task_time=14:30:00`.
+- Verified `created_by IS NULL` count is zero.
+- Confirmed the only old fake task symbols and module-level dashboard date pattern are absent.
+- No 4b implementation started.
+

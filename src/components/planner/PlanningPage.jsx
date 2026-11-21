@@ -8,6 +8,13 @@ const statusLabels = {
   done: 'Terminée',
 }
 
+const tndFormatter = new Intl.NumberFormat('fr-FR', {
+  style: 'currency',
+  currency: 'TND',
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 2,
+})
+
 function toIsoDate(date) {
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, '0')
@@ -228,6 +235,7 @@ export function PlanningPage({ wedding }) {
                       <strong>{task.title}</strong>
                       {task.task_time && <small>{task.task_time}</small>}
                       {task.description && <p>{task.description}</p>}
+                      {task.estimated_cost != null && <small>{tndFormatter.format(task.estimated_cost)}</small>}
                       {isUrgent(task) && <b className="urgent-label">Urgente</b>}
                     </div>
                     <select className="status-select" value={task.status} onChange={(event) => changeStatus(task, event.target.value)} aria-label={`Statut de ${task.title}`}>

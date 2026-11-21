@@ -75,13 +75,13 @@ function App() {
       <aside className={`side-panel ${menuOpen ? 'is-open' : ''}`}>
         <div className="brand brand-sidebar"><span className="brand-mark">♡</span><span>LAMSA <em>by Farah</em></span></div>
         <nav className="side-nav">
-          <NavItem icon="home" label="Accueil" active={activePage === 'home'} onClick={() => setActivePage('home')} />
-          <NavItem icon="heart" label="Mes favoris" active={activePage === 'favorites'} onClick={() => setActivePage('favorites')} />
-          <NavItem icon="calendar" label="Mon planning" active={activePage === 'planning'} onClick={() => setActivePage('planning')} />
-          <NavItem icon="wallet" label="Mon budget" active={activePage === 'budget'} onClick={() => setActivePage('budget')} />
-          <NavItem icon="building" label="Trouver un service" active={activePage === 'services'} onClick={() => setActivePage('services')} />
+          <NavItem icon="home" label="Accueil" active={activePage === 'home'} onClick={() => { setActivePage('home'); setMenuOpen(false) }} />
+          <NavItem icon="heart" label="Mes favoris" active={activePage === 'favorites'} onClick={() => { setActivePage('favorites'); setMenuOpen(false) }} />
+          <NavItem icon="calendar" label="Mon planning" active={activePage === 'planning'} onClick={() => { setActivePage('planning'); setMenuOpen(false) }} />
+          <NavItem icon="wallet" label="Mon budget" active={activePage === 'budget'} onClick={() => { setActivePage('budget'); setMenuOpen(false) }} />
+          <NavItem icon="building" label="Trouver un service" active={activePage === 'services'} onClick={() => { setActivePage('services'); setMenuOpen(false) }} />
         </nav>
-        <div className="side-bottom"><NavItem icon="user" label="Mon profil" active={activePage === 'profile'} onClick={() => setActivePage('profile')} /><p>Votre mariage,<br /><strong>votre signature.</strong></p></div>
+        <div className="side-bottom"><NavItem icon="user" label="Mon profil" active={activePage === 'profile'} onClick={() => { setActivePage('profile'); setMenuOpen(false) }} /><p>Votre mariage,<br /><strong>votre signature.</strong></p></div>
       </aside>
       <div className="main-column">
         <header className="topbar">

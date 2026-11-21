@@ -139,6 +139,12 @@ h3 { font-size: 14px; margin-bottom: 0; }
 .demo-badge { position: absolute; left: 12px; top: 11px; border-radius: 12px; background: rgba(255,250,245,.92); color: var(--deep); font-size: 9px; padding: 6px 8px; }
 .phase-placeholder { min-height: 260px; }
 .planning-actions { display: flex; gap: 8px; align-items: center; }
+.planning-actions button { min-height: 44px; }
+.planning-layout { align-items: start; }
+.calendar-card { position: relative; z-index: 2; min-width: 0; }
+.day-card { position: relative; z-index: 1; min-width: 0; }
+.month-header { position: relative; z-index: 5; }
+.month-header button { position: relative; z-index: 6; min-width: 44px; min-height: 44px; }
 .secondary-button { border: 1px solid var(--line); background: rgba(255,255,255,.7); color: var(--deep); border-radius: 24px; padding: 10px 15px; font-size: 11px; }
 .success-banner { background: #e9efe3; color: #65785a; border-radius: 10px; padding: 10px 12px; margin: 16px 0; font-size: 12px; }
 .error-banner { background: #f3dfd7; color: #8d5548; border-radius: 10px; padding: 10px 12px; margin: 16px 0; display: flex; justify-content: space-between; gap: 12px; font-size: 12px; }
@@ -165,6 +171,7 @@ h3 { font-size: 14px; margin-bottom: 0; }
 .task-form textarea { resize: vertical; }
 .task-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+.modal-actions button { min-height: 44px; }
 .cost-note { color: var(--muted); font-size: 10px; margin: 12px 0 0; }
 .empty-icon { color: var(--terracotta); font-size: 28px; }
 @media (max-width: 650px) {

@@ -134,6 +134,8 @@ Actual Phase 2 validation:
 
 ### Phase 4 — Product functionality
 
+- Sub-batch 4a — deterministic planner and task CRUD: implemented and signed off for final sign-off validation.
+
 - Implement wedding project creation/editing.
 - Implement deterministic smart planner generation, urgent-date handling, duplicate prevention, and replacement confirmation.
 - Add task creation, editing, deletion, notes, time, estimated cost, and statuses.

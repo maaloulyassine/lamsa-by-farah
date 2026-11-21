@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../context/useAuth'
+import { translateAuthError } from '../utils/authErrors'
 
 export function AuthScreen({ initialMode = 'signin', onBack, expired = false }) {
   const { signIn, signUp } = useAuth()
@@ -19,15 +20,17 @@ export function AuthScreen({ initialMode = 'signin', onBack, expired = false }) 
     setSubmitting(true)
 
     try {
+      if (mode === 'signup' && !fullName.trim()) throw new Error('Veuillez indiquer vos noms.')
+      if (!email.trim()) throw new Error('Veuillez saisir votre adresse email.')
+      if (!password) throw new Error('Veuillez saisir votre mot de passe.')
       if (mode === 'signup') {
-        if (!fullName.trim()) throw new Error('Veuillez indiquer vos noms.')
         const { data, error: signupError } = await signUp({ fullName: fullName.trim(), email, phone, password })
-        if (signupError) throw signupError
+        if (signupError) throw new Error(translateAuthError(signupError.message))
         if (data.session) setSuccess('Votre compte est prêt.')
         else setSuccess('Votre compte est créé. Consultez votre e-mail pour confirmer votre inscription.')
       } else {
         const { error: signinError } = await signIn(email, password)
-        if (signinError) throw signinError
+        if (signinError) throw new Error(translateAuthError(signinError.message))
       }
     } catch (caught) {
       setError(caught.message || 'Une erreur est survenue.')
@@ -44,7 +47,7 @@ export function AuthScreen({ initialMode = 'signin', onBack, expired = false }) 
         <h1>{mode === 'signup' ? 'Créer votre compte' : 'Bienvenue'}</h1>
         <p className="auth-intro">{mode === 'signup' ? 'Commencez à organiser votre mariage.' : 'Retrouvez votre espace mariage.'}</p>
         {expired && <p className="auth-message error">Votre session a expiré. Veuillez vous reconnecter.</p>}
-        <form onSubmit={submit}>
+        <form onSubmit={submit} noValidate>
           {mode === 'signup' && (
             <>
               <label>Nom du couple ou prénom<input value={fullName} onChange={(event) => setFullName(event.target.value)} autoComplete="name" required /></label>

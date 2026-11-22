@@ -25,6 +25,16 @@ export async function getProviderById(id) {
     .maybeSingle()
 }
 
+// Lot 3c: provider pages are addressed by slug (#/services/<slug>).
+export async function getProviderBySlug(slug) {
+  return supabase
+    .from('providers')
+    .select(PROVIDER_SELECT)
+    .eq('slug', slug)
+    .eq('is_active', true)
+    .maybeSingle()
+}
+
 export async function listFilterOptions() {
   return Promise.all([
     supabase.from('categories').select('id, name, slug, icon, sort_order').eq('is_active', true).order('sort_order', { ascending: true }),

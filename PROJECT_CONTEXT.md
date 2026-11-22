@@ -240,6 +240,12 @@ The MVP is deployed and publicly accessible.
 - 2b Card → provider detail morph with the View Transitions API (`src/utils/viewTransition.js`), Services and Favoris, instant fallback (unsupported browsers, reduced motion); `ProviderDetail` shows the card's cover (`preview`) while loading.
 - 2c Evening theme « soirée » (dark & gold): every colour override is scoped to `:root[data-theme="soiree"]` (light mode untouched); toggle in the top bar and as the « Mode soirée » switch in Profil (replaces the inactive « Paramètres »); choice stored in `localStorage` (`lamsa-theme`), applied by an inline script in `index.html` before first paint, `theme-color` updated; cross-fade via View Transition. `src/utils/theme.js` (`useTheme`, `toggleTheme`).
 
+### Lot 3 — complete the app (v1.6.0) — complete
+
+- 3a Notifications bell: overdue / this week tasks, contact-request status changes since last opened (per user, localStorage), budget overspend; computed from existing data (`NotificationsBell`, `listMyRequestUpdates`).
+- 3b « Mon projet de mariage » and « Modifier mon profil » edit screens (shared `WeddingFields` + `utils/weddingForm.js`, `services/projectService.js`); no inactive button left.
+- 3c Hash routing (`src/utils/router.js`): `#/accueil`, `#/planning`, `#/budget`, `#/services[/<slug>]`, `#/favoris[/<slug>]`, `#/profil`, `#/profil/projet`, `#/profil/modifier`, `#/demandes`, `#/admin`; synchronous store + `pushState` (View Transitions keep working), back / forward wrapped in a transition, « Retour » uses `history.back()` when the detail was opened from the list, unknown hash → home, `#/admin` → profile for non-admins, signed-out deep links land on the target after login, page title per screen. Provider pages load by slug (`getProviderBySlug`).
+
 ### Phase 5 — Quality and delivery
 
 - 5a (French auth errors): complete. 5b (GitHub Actions node24 runtime, Node 22.12 build): complete.
@@ -291,7 +297,6 @@ The MVP is deployed and publicly accessible.
 - **REFERENCES and TRIGGER remain granted to `anon` / `authenticated`** from the project defaults (documented in 5c); they cannot be used through PostgREST and were left out of scope.
 - **TND formatting** — `Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' })`: U+202F groups thousands, U+00A0 separates the amount and « TND ». No « DT » string in `src/`.
 - **Overspend with a total budget of 0** — the ring shows « — » + « Dépassement » (a percentage of 0 is undefined).
-- **Navigation uses React state, not URL routing** — no deep links or browser-history navigation between screens.
 - **Vite upgrades need a preview smoke test** — the Vite 8 / rolldown build once produced corrupted preload markers and a blank page while `npm run build` exited 0 (fixed in `7d42dbe` by moving to Vite 7). Any future Vite major upgrade must be checked in `vite preview`, not only by the build exit code.
 - **oxlint's Windows binary** is installed through oxlint's own optional dependencies (the explicit `@oxlint/binding-win32-x64-msvc` entry was removed in 5e after a clean `npm ci` + lint check).
 
@@ -308,6 +313,7 @@ The MVP is deployed and publicly accessible.
 - Hard-coded Dashboard values (« 08 heures », « 42 minutes », « Votre préparation 42% ») → computed from the wedding date and the tasks (v1.4.0).
 - Pale light-mode texts (`--muted` #8c7c70, `--faint` #b7a99e, rating gold, small terracotta links, « Supprimer », « Se déconnecter ») below WCAG AA → darker shades of the same hues; 843 → 0 failing text elements on 12 screens (v1.5.1).
 - Inactive Profile buttons → « Paramètres » became the « Mode soirée » switch (v1.5.0); « Mon projet de mariage » and « Modifier mon profil » open edit screens (lot 3b). No inactive button left.
+- No URL routing (no deep links, back button left the app) → hash routing (lot 3c).
 - Inactive top-bar bell with a permanent dot → notifications panel (lot 3a).
 - Inactive Dashboard task check boxes (`TaskRow` rendered without `onToggle` since Phase 4a) → wired to the same status update as Planning, with toast and error banner (v1.3.1).
 - Unused packages (`@rolldown/binding-win32-x64-msvc` from the Vite 8 period, `@types/react`, `@types/react-dom`, the explicit oxlint Windows binding) → removed.

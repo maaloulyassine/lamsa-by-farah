@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { getProviderById } from '../../services/providersService'
+import { getProviderBySlug } from '../../services/providersService'
 import { formatRating, formatTndRange } from '../../utils/format'
 import { ContactRequestModal } from './ContactRequestModal'
 import { FavoriteButton, ProviderCover } from './ProviderCard'
@@ -21,7 +21,7 @@ function externalUrl(url) {
   return /^https?:\/\//i.test(url) ? url : `https://${url}`
 }
 
-export function ProviderDetail({ providerId, wedding, userId, onBack, onSent, backLabel = 'Retour au catalogue', isFavorite = false, favoritePending = false, onToggleFavorite, preview = null }) {
+export function ProviderDetail({ providerSlug, wedding, userId, onBack, onSent, backLabel = 'Retour au catalogue', favoriteFor = null, preview = null }) {
   const [provider, setProvider] = useState(null)
   const [status, setStatus] = useState('loading') // loading | error | notfound | ready
   const [contactOpen, setContactOpen] = useState(false)
@@ -37,13 +37,13 @@ export function ProviderDetail({ providerId, wedding, userId, onBack, onSent, ba
 
   useEffect(() => {
     let active = true
-    getProviderById(providerId).then((result) => { if (active) apply(result) })
+    getProviderBySlug(providerSlug).then((result) => { if (active) apply(result) })
     return () => { active = false }
-  }, [providerId, apply])
+  }, [providerSlug, apply])
 
   const retry = async () => {
     setStatus('loading')
-    apply(await getProviderById(providerId))
+    apply(await getProviderBySlug(providerSlug))
   }
 
   const backButton = <button type="button" className="secondary-button provider-back" onClick={onBack}>← {backLabel}</button>
@@ -88,9 +88,10 @@ export function ProviderDetail({ providerId, wedding, userId, onBack, onSent, ba
       {backButton}
       <div className="provider-cover-wrap provider-detail-cover-wrap" style={{ viewTransitionName: 'provider-cover' }}>
         <ProviderCover provider={provider} iconSize={64} className="provider-detail-cover" />
-        {onToggleFavorite && (
-          <FavoriteButton providerName={provider.name} isFavorite={isFavorite} pending={favoritePending} onToggle={() => onToggleFavorite(provider.id)} />
-        )}
+        {favoriteFor && (() => {
+          const fav = favoriteFor(provider.id)
+          return <FavoriteButton providerName={provider.name} isFavorite={fav.isFavorite} pending={fav.favoritePending} onToggle={() => fav.onToggleFavorite(provider.id)} />
+        })()}
       </div>
       {gallery.length > 0 && (
         <div className="provider-gallery" aria-label="Galerie">

@@ -39,6 +39,9 @@ Desktop, 1280×800, captured from the production build with demo data.
 - **Provider catalogue** — 189 real Tunisian wedding providers in 10 categories, mainly in 5 governorates (Tunis, Nabeul / Hammamet, Sousse, Monastir, Bizerte, plus 2 providers in Ariana); search by name or city, category and governorate filters, a detail page with phone and a « Voir sur Google Maps » link.
 - **Favorites** — save providers from the catalogue and find them on « Mes favoris ».
 - **Contact requests** — send a message to a provider and follow its status (En attente → Transmise → Fermée) on « Mes demandes de contact ». A request is never presented as a confirmed booking.
+- **Notifications** — the bell lists overdue tasks, tasks of the week, contact requests whose status changed and budget overspend.
+- **Edit your project and profile** — wedding date, place, budget, guests; name and phone.
+- **Shareable URLs** — every screen and provider page has its own address (`#/services/rosa-deco`); the phone's back button and browser history work.
 - **Admin panel** *(post-MVP bonus)* — a minimal screen for admins to move contact requests through their statuses.
 - **Installable PWA** — manifest, icons, offline app shell, install on Android and iPhone.
 

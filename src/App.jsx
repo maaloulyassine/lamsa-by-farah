@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import './App.css'
 import { useAuth } from './context/useAuth'
 import { AuthScreen } from './pages/AuthPages'
@@ -19,6 +19,8 @@ import { toggleTheme, useTheme } from './utils/theme'
 import { NotificationsBell } from './components/notifications/NotificationsBell'
 import { EditProjectPage } from './components/profile/EditProjectPage'
 import { EditProfilePage } from './components/profile/EditProfilePage'
+import { historyFlag, navigate, useRoute } from './utils/router'
+import { runViewTransition } from './utils/viewTransition'
 import { WelcomeCarousel } from './components/welcome/WelcomeCarousel'
 
 const categories = [
@@ -63,14 +65,53 @@ function Icon({ name, size = 20 }) {
   return <svg className="icon" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">{paths[name] || paths.check}</svg>
 }
 
+const PAGE_TITLES = {
+  home: 'Accueil',
+  planning: 'Mon planning',
+  budget: 'Mon budget',
+  services: 'Trouver un service',
+  favorites: 'Mes favoris',
+  profile: 'Mon profil',
+  'edit-project': 'Mon projet de mariage',
+  'edit-profile': 'Modifier mon profil',
+  requests: 'Mes demandes de contact',
+  'admin-requests': 'Admin — Demandes',
+}
+
 function App() {
   const { user, profile, wedding, loading, error, sessionExpired, refreshWedding } = useAuth()
   // Phase 6: admin flag from the JWT's app_metadata (server-side only); RLS enforces it anyway.
   const isAdmin = user?.app_metadata?.is_admin === true
   const [authMode, setAuthMode] = useState(null)
-  const [activePage, setActivePage] = useState('home')
+  // Lot 3c: the screen lives in the URL hash (#/accueil, #/services/<slug>…), so back / forward and links work.
+  const route = useRoute()
+  const activePage = route.page
+  const setActivePage = useCallback((page) => navigate({ page }), [])
+  // « Retour » from a provider page: go back in history when it was opened from the list, else open the list.
+  const closeDetail = useCallback((page) => {
+    if (historyFlag('fromList')) window.history.back()
+    else runViewTransition(() => navigate({ page }))
+  }, [])
   const [menuOpen, setMenuOpen] = useState(false)
   const theme = useTheme()
+
+  // Unknown hash → home; admin route without the admin claim → profile (replace, no extra history entry).
+  useEffect(() => {
+    if (!route.known) navigate({ page: 'home' }, { replace: true })
+    else if (user && activePage === 'admin-requests' && !isAdmin) navigate({ page: 'profile' }, { replace: true })
+  }, [route.known, activePage, isAdmin, user])
+
+  // Browser back / forward closes the mobile drawer.
+  useEffect(() => {
+    const close = () => setMenuOpen(false)
+    window.addEventListener('popstate', close)
+    return () => window.removeEventListener('popstate', close)
+  }, [])
+
+  // Page title follows the screen.
+  useEffect(() => {
+    document.title = `${PAGE_TITLES[activePage] || 'Accueil'} · Lamsa by Farah`
+  }, [activePage])
 
 
   if (!user && (authMode || sessionExpired)) {
@@ -108,8 +149,8 @@ function App() {
           {activePage === 'home' && <Dashboard setActivePage={setActivePage} wedding={wedding} profile={profile} />}
           {activePage === 'planning' && <PlanningPage wedding={wedding} onNavigateToRequests={() => setActivePage('requests')} />}
           {activePage === 'budget' && <BudgetPage wedding={wedding} refreshWedding={refreshWedding} />}
-          {activePage === 'services' && <ProvidersPage wedding={wedding} userId={user?.id} />}
-          {activePage === 'favorites' && <FavoritesPage wedding={wedding} userId={user?.id} onDiscover={() => setActivePage('services')} />}
+          {activePage === 'services' && <ProvidersPage wedding={wedding} userId={user?.id} selectedSlug={route.slug} onOpenProvider={(slug) => navigate({ page: 'services', slug }, { state: { fromList: true } })} onCloseProvider={() => closeDetail('services')} />}
+          {activePage === 'favorites' && <FavoritesPage wedding={wedding} userId={user?.id} onDiscover={() => setActivePage('services')} selectedSlug={route.slug} onOpenProvider={(slug) => navigate({ page: 'favorites', slug }, { state: { fromList: true } })} onCloseProvider={() => closeDetail('favorites')} />}
           {activePage === 'profile' && <Profile setActivePage={setActivePage} />}
           {activePage === 'requests' && <MyRequestsPage onBack={() => setActivePage('profile')} onDiscover={() => setActivePage('services')} />}
           {activePage === 'admin-requests' && isAdmin && <AdminRequestsPage onBack={() => setActivePage('profile')} />}

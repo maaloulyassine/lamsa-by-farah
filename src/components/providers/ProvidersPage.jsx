@@ -29,7 +29,7 @@ function SkeletonCards() {
   )
 }
 
-export function ProvidersPage({ wedding, userId }) {
+export function ProvidersPage({ wedding, userId, selectedSlug = null, onOpenProvider, onCloseProvider }) {
   const [filters, setFilters] = useState(EMPTY_FILTERS)
   const [categories, setCategories] = useState([])
   const [governorates, setGovernorates] = useState([])
@@ -38,8 +38,7 @@ export function ProvidersPage({ wedding, userId }) {
   const [providers, setProviders] = useState([])
   const [listLoading, setListLoading] = useState(true)
   const [listError, setListError] = useState('')
-  const [selectedId, setSelectedId] = useState(null)
-  const [morphId, setMorphId] = useState(null) // card whose cover morphs into / out of the detail
+  const [morphSlug, setMorphSlug] = useState(null) // card whose cover morphs into / out of the detail
   const [success, setSuccess] = useState('')
   const requestId = useRef(0)
   const lastOpened = useRef(null)
@@ -125,10 +124,10 @@ export function ProvidersPage({ wedding, userId }) {
 
   // Back from detail: restore scroll and focus the card that was opened.
   useEffect(() => {
-    if (selectedId || !lastOpened.current) return
+    if (selectedSlug || !lastOpened.current) return
     window.scrollTo(0, listScrollY.current)
     document.querySelector(`[data-provider-id="${lastOpened.current}"] .provider-open`)?.focus()
-  }, [selectedId])
+  }, [selectedSlug])
 
   const visibleProviders = useMemo(() => {
     const term = filters.search.trim().toLocaleLowerCase('fr-FR')
@@ -141,11 +140,12 @@ export function ProvidersPage({ wedding, userId }) {
   const clearFilters = () => setFilters(EMPTY_FILTERS)
 
   const openProvider = (id) => {
+    const slug = providers.find((provider) => provider.id === id)?.slug
+    if (!slug) return
     lastOpened.current = id
     listScrollY.current = window.scrollY
-    runViewTransition(() => { setSelectedId(id); window.scrollTo(0, 0) }, () => setMorphId(id))
+    runViewTransition(() => { onOpenProvider(slug); window.scrollTo(0, 0) }, () => setMorphSlug(slug))
   }
-  const closeProvider = () => runViewTransition(() => setSelectedId(null))
 
   const toast = (
     <>
@@ -155,19 +155,19 @@ export function ProvidersPage({ wedding, userId }) {
     </>
   )
 
-  if (selectedId) {
+  if (selectedSlug) {
     return (
       <>
         {toast}
         <ProviderDetail
-          key={selectedId}
-          providerId={selectedId}
+          key={selectedSlug}
+          providerSlug={selectedSlug}
           wedding={wedding}
           userId={userId}
-          onBack={closeProvider}
+          onBack={onCloseProvider}
           onSent={() => setSuccess(CONTACT_SUCCESS)}
-          preview={providers.find((provider) => provider.id === selectedId) || null}
-          {...favoriteProps(selectedId)}
+          preview={providers.find((provider) => provider.slug === selectedSlug) || null}
+          favoriteFor={favoriteProps}
         />
       </>
     )
@@ -188,7 +188,7 @@ export function ProvidersPage({ wedding, userId }) {
         </div>
       )
   } else {
-    listContent = <div className="provider-grid">{visibleProviders.map((provider) => <ProviderCard key={provider.id} provider={provider} onOpen={openProvider} morph={provider.id === morphId} {...favoriteProps(provider.id)} />)}</div>
+    listContent = <div className="provider-grid">{visibleProviders.map((provider) => <ProviderCard key={provider.id} provider={provider} onOpen={openProvider} morph={provider.slug === morphSlug} {...favoriteProps(provider.id)} />)}</div>
   }
 
   return (

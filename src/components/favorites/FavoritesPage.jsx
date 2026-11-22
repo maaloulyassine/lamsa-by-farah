@@ -23,14 +23,13 @@ function SkeletonCards() {
   )
 }
 
-export function FavoritesPage({ wedding, userId, onDiscover }) {
+export function FavoritesPage({ wedding, userId, onDiscover, selectedSlug = null, onOpenProvider, onCloseProvider }) {
   // providers keeps the fetched rows; favoriteIds (optimistic) decides which ones are shown,
   // so an unfavorited card disappears immediately and comes back if the mutation fails.
   const [providers, setProviders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [selectedId, setSelectedId] = useState(null)
-  const [morphId, setMorphId] = useState(null)
+  const [morphSlug, setMorphSlug] = useState(null)
   const [success, setSuccess] = useState('')
   const lastOpened = useRef(null)
   const { favoriteIds, setFavoriteIds, pendingIds, toggleFavorite, toggleError, clearToggleError } = useFavoriteToggle()
@@ -65,9 +64,9 @@ export function FavoritesPage({ wedding, userId, onDiscover }) {
   }, [success])
 
   useEffect(() => {
-    if (selectedId || !lastOpened.current) return
+    if (selectedSlug || !lastOpened.current) return
     document.querySelector(`[data-provider-id="${lastOpened.current}"] .provider-open`)?.focus()
-  }, [selectedId])
+  }, [selectedSlug])
 
   const visible = useMemo(() => providers.filter((provider) => favoriteIds.has(provider.id)), [providers, favoriteIds])
 
@@ -78,22 +77,20 @@ export function FavoritesPage({ wedding, userId, onDiscover }) {
     </>
   )
 
-  if (selectedId) {
+  if (selectedSlug) {
     return (
       <>
         {toasts}
         <ProviderDetail
-          key={selectedId}
-          providerId={selectedId}
+          key={selectedSlug}
+          providerSlug={selectedSlug}
           wedding={wedding}
           userId={userId}
           backLabel="Retour à mes favoris"
-          onBack={() => runViewTransition(() => setSelectedId(null))}
+          onBack={onCloseProvider}
           onSent={() => setSuccess(CONTACT_SUCCESS)}
-          preview={providers.find((provider) => provider.id === selectedId) || null}
-          isFavorite={favoriteIds.has(selectedId)}
-          favoritePending={pendingIds.has(selectedId)}
-          onToggleFavorite={toggleFavorite}
+          preview={providers.find((provider) => provider.slug === selectedSlug) || null}
+          favoriteFor={(id) => ({ isFavorite: favoriteIds.has(id), favoritePending: pendingIds.has(id), onToggleFavorite: toggleFavorite })}
         />
       </>
     )
@@ -117,8 +114,8 @@ export function FavoritesPage({ wedding, userId, onDiscover }) {
           <ProviderCard
             key={provider.id}
             provider={provider}
-            onOpen={(id) => { lastOpened.current = id; runViewTransition(() => { setSelectedId(id); window.scrollTo(0, 0) }, () => setMorphId(id)) }}
-            morph={provider.id === morphId}
+            onOpen={() => { lastOpened.current = provider.id; runViewTransition(() => { onOpenProvider(provider.slug); window.scrollTo(0, 0) }, () => setMorphSlug(provider.slug)) }}
+            morph={provider.slug === morphSlug}
             isFavorite
             favoritePending={pendingIds.has(provider.id)}
             onToggleFavorite={toggleFavorite}

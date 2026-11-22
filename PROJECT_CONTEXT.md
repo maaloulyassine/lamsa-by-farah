@@ -282,7 +282,6 @@ The MVP is deployed and publicly accessible.
 - **Availability filter not implemented** — `providers.availability_notes` is free text and cannot reliably answer « disponible à la date du mariage ? »; inventing structured availability would break the specification's demonstration rules (§8). Deferred until a structured availability field exists.
 - **Raw technical messages outside the auth forms** — `AuthContext` can show the browser's « TypeError: Failed to fetch » after an offline reload, and the space-loading and wedding-setup errors can show raw Supabase messages (auth form errors were translated in 5a).
 - **Budget taxonomy reuses the 10 provider categories** — items such as invitations, jewellery or honeymoon must be logged under an existing category with a note.
-- **Light-mode text contrast** — the v1.5.0 contrast audit flags a few pale texts on cream in the light theme (e.g. `--faint` hints, small muted captions); pre-existing, not changed by the evening theme.
 - **The flower icon is used for 3 categories** (`coiffure-maquillage`, `decoration`, `fleurs`) — cosmetic.
 
 ### Technical decisions (working as intended)
@@ -308,6 +307,7 @@ The MVP is deployed and publicly accessible.
 - Demo providers → replaced by 189 real providers; 2 cloud contact requests that referenced demo providers were deleted (Phase 6.6).
 - Broken Vite 8 / rolldown production build → Vite 7 (`7d42dbe`); local Node 20.15 → 20.19 / 22.12.
 - Hard-coded Dashboard values (« 08 heures », « 42 minutes », « Votre préparation 42% ») → computed from the wedding date and the tasks (v1.4.0).
+- Pale light-mode texts (`--muted` #8c7c70, `--faint` #b7a99e, rating gold, small terracotta links, « Supprimer », « Se déconnecter ») below WCAG AA → darker shades of the same hues; 843 → 0 failing text elements on 12 screens (v1.5.1).
 - Inactive Dashboard task check boxes (`TaskRow` rendered without `onToggle` since Phase 4a) → wired to the same status update as Planning, with toast and error banner (v1.3.1).
 - Unused packages (`@rolldown/binding-win32-x64-msvc` from the Vite 8 period, `@types/react`, `@types/react-dom`, the explicit oxlint Windows binding) → removed.
 - Obsolete Phase 1 notes (local-state data reset on refresh, app not connected to Supabase / PWA, 4.5 ★ filter note on the 20 demo providers) → no longer apply.

@@ -16,6 +16,7 @@ import { Flourish } from './components/ui/Flourish'
 import { Burst } from './components/ui/Burst'
 import { RollingNumber } from './components/ui/RollingNumber'
 import { toggleTheme, useTheme } from './utils/theme'
+import { NotificationsBell } from './components/notifications/NotificationsBell'
 import { WelcomeCarousel } from './components/welcome/WelcomeCarousel'
 
 const categories = [
@@ -99,7 +100,7 @@ function App() {
         <header className="topbar">
           <button className="mobile-menu" onClick={() => setMenuOpen((open) => !open)} aria-label="Ouvrir le menu">☰</button>
           <div className="brand brand-mobile"><Wordmark size="sm" /></div>
-          <div className="topbar-actions"><button className="icon-button theme-toggle" onClick={toggleTheme} aria-label={theme === 'soiree' ? 'Passer au mode clair' : 'Passer au mode soirée'} title={theme === 'soiree' ? 'Mode clair' : 'Mode soirée'}><Icon name={theme === 'soiree' ? 'sun' : 'moon'} size={19} /></button><button className="icon-button notification" aria-label="Notifications"><Icon name="bell" size={19} /><i /></button><button className="avatar" onClick={() => setActivePage('profile')}>F</button></div>
+          <div className="topbar-actions"><button className="icon-button theme-toggle" onClick={toggleTheme} aria-label={theme === 'soiree' ? 'Passer au mode clair' : 'Passer au mode soirée'} title={theme === 'soiree' ? 'Mode clair' : 'Mode soirée'}><Icon name={theme === 'soiree' ? 'sun' : 'moon'} size={19} /></button><NotificationsBell wedding={wedding} userId={user?.id} refreshKey={activePage} onNavigate={(page) => { setActivePage(page); setMenuOpen(false) }} /><button className="avatar" onClick={() => setActivePage('profile')}>F</button></div>
         </header>
         <main className="page-content">
           {activePage === 'home' && <Dashboard setActivePage={setActivePage} wedding={wedding} profile={profile} />}

@@ -21,6 +21,21 @@ export async function listMyContactRequests() {
     .order('created_at', { ascending: false })
 }
 
+// Lot 3a notifications: the user's own requests whose status moved past « En attente » (sent / closed),
+// with updated_at so the bell can tell which changes are new. Explicit user_id filter (admins can read all rows).
+export async function listMyRequestUpdates() {
+  const { data: sessionData } = await supabase.auth.getSession()
+  const userId = sessionData.session?.user?.id
+  if (!userId) return { data: [], error: null }
+  return supabase
+    .from('contact_requests')
+    .select('id, status, updated_at, provider:providers(name)')
+    .eq('user_id', userId)
+    .in('status', ['sent', 'closed'])
+    .order('updated_at', { ascending: false })
+    .limit(20)
+}
+
 // Phase 6.5: the user's own requests already transmitted to the provider (status 'sent'), for the Planning page.
 // Explicit user_id filter: since Phase 6, contact_requests_select_admin lets admins read every row, so RLS
 // alone would show an admin all users' requests. Plain (left) join to providers, like 4e

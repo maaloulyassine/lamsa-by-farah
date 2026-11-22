@@ -11,7 +11,8 @@ import { FavoritesPage } from './components/favorites/FavoritesPage'
 import { MyRequestsPage } from './components/contact/MyRequestsPage'
 import { AdminRequestsPage } from './components/admin/AdminRequestsPage'
 import { formatTnd } from './utils/format'
-import { Flourish, Wordmark } from './components/ui/Wordmark'
+import { Wordmark } from './components/ui/Wordmark'
+import { WelcomeCarousel } from './components/welcome/WelcomeCarousel'
 
 const categories = [
   ['Salle de mariage', 'building', 'Salles de mariage'],
@@ -109,7 +110,12 @@ function App() {
 }
 
 function Welcome({ onStart, onSignIn }) {
-  return <div className="welcome-screen"><div className="welcome-art" /><div className="welcome-card"><div className="brand brand-welcome"><Wordmark size="lg" /></div><p className="slogan">Votre mariage, votre signature.</p><Flourish className="slogan-flourish" /><button className="primary-button welcome-button" onClick={onStart}>Commencer <Icon name="arrow" size={17} /></button><button className="welcome-signin" onClick={onSignIn}>J’ai déjà un compte</button><p className="welcome-note">Votre assistant pour un mariage inoubliable</p></div></div>
+  return (
+    <WelcomeCarousel>
+      <button type="button" className="primary-button welcome-cta" onClick={onStart}>Commencer <Icon name="arrow" size={17} /></button>
+      <button type="button" className="secondary-button welcome-cta" onClick={onSignIn}>J’ai déjà un compte</button>
+    </WelcomeCarousel>
+  )
 }
 
 function NavItem({ icon, label, active, onClick }) {

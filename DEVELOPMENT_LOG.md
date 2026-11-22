@@ -328,3 +328,15 @@
 - `--ink-soft` did not exist; added as `#7a6558` (between `--ink` and `--muted`).
 - Service-worker precache: 3 fonts added explicitly in `vite.config.js`; `lamsa-v1` now 16 entries (13 + 3).
 - Validation (production build via preview, local Supabase): wordmark computed fonts Italiana / Cormorant Garamond italic on Welcome (48px), auth (28px), sidebar (28px, 85 px wide in a 246 px panel), mobile top bar (20px, no overlap with actions: wordmark right 117 px < actions left 288 px); slogan Cormorant italic 20px with flourish; the 3 WOFF2 files 200 `font/woff2`; 0 requests to fonts.googleapis/gstatic; Welcome buttons "Commencer" / "J’ai déjà un compte" work (login completed); Planning, Budget, Services, Favoris, Profil, Accueil render (h1 present, scrollWidth 1280); 390 px: scrollWidth 390 on Welcome and dashboard; console empty; lint 0/0; build OK.
+
+### 2026-11-22 — Phase 7b: welcome carousel
+
+- Images (Unsplash License), owner-provided URLs only, downloaded through `https://unsplash.com/photos/{id}/download?force=true` (all 200 `image/jpeg` from images.unsplash.com), centre-cropped to 16:9 with Pillow, 1600×900, WebP q75:
+  1. `8vaQKYnawHw` gold wedding bands on white textile — 67.0 KB
+  2. `KRPCwGCzUJs` white sheer lace wedding gown (back detail) — 51.5 KB
+  3. `30UOqDM5QW0` bride holding a peach/beige bouquet, groom behind — 53.0 KB
+  4. `iXTkKQyVqbM` banquet hall with chandeliers and set tables — 192.2 KB
+  5. `kiAHo9m518Q` bride and groom holding hands in front of a fence — 38.2 KB
+- A first attempt with Python `urllib` got HTTP 401 on all five (client-specific; not the Unsplash+ 403). Re-run with `curl` exactly as in Phase 6.7 (same endpoint) → 200 for all five.
+- `WelcomeCarousel.jsx` (no new dependency): slides as `role="group"` / `aria-roledescription="slide"`, inactive slides `aria-hidden`; dots are buttons with `aria-current` and a 28 px tap height; the carousel is focusable for ArrowLeft/ArrowRight. Image URLs prefixed with `import.meta.env.BASE_URL` (GitHub Pages base path). CTA specificity raised so the existing `.secondary-button` rule (11 px) does not shrink "J’ai déjà un compte". Old Welcome CSS (incl. the images.unsplash.com background) and the 7a `.slogan` rules removed. The dashboard hero still hot-links an images.unsplash.com photo (pre-existing, out of scope).
+- Validation (production build via preview, local Supabase): 5 slides with the expected slogans and images (DOM + screenshots), active slide opacity 1; auto-rotate 0 → 1 after 7.7 s; dot 3 click → still slide 3 after 7 s and 13.5 s (paused); 390 px CDP touch swipe 350→50 → next, 50→350 → previous, 20 px → no change; arrows opacity 0 on load, 1 on hover, 44×44, next/prev work; keyboard ArrowRight/ArrowLeft work; reduced motion → no rotation after 7 s, transition 0 s; "Commencer" and "J’ai déjà un compte" open the auth screen; login → dashboard at 1280 and 390 px (scrollWidth 1280 / 390); slogan 28 px; CTAs 14 px / 48 px; 5 images 200 `image/webp`; `lamsa-v1` 21 entries; console empty; lint 0; build OK, 0 preload-marker leftovers in the bundle.

@@ -224,7 +224,8 @@ The MVP is deployed and publicly accessible.
 ### Phase 7 — Design refresh — in progress
 
 - 7a (typography + wordmark): `src/components/ui/Wordmark.jsx` (`Wordmark` sizes lg/md/sm + reusable `Flourish` SVG) replaces the old "♡ LAMSA by Farah" brand on Welcome (lg), sidebar (md), mobile top bar (sm, ≤ 650 px — the app has no bottom nav), login/sign-up and wedding setup (md). Welcome slogan on one line in Cormorant Garamond italic with a flourish below (replaces the ♡ rule). New token `--ink-soft`. Fonts Italiana 400, Cormorant Garamond 400 normal + italic added to the service-worker precache (`lamsa-v1`: 16 entries).
-- 7b (welcome carousel) and 7c (micro-interactions / polish): pending.
+- 7b (welcome carousel): `src/components/welcome/WelcomeCarousel.jsx` replaces the Welcome card. 5 full-screen slides (`public/images/welcome/slide-1…5.webp`, 1600×900, Unsplash License) with the wordmark, a Cormorant italic slogan and a flourish; 0.8 s opacity fade, auto-rotate every 6 s, 30 s pause after a dot / arrow / swipe / arrow-key interaction, desktop hover arrows (44 px), 50 px swipe threshold, next-two-image preload, `prefers-reduced-motion` disables auto-rotate and transitions. Per-slide `background-position` keeps the subject visible on portrait screens. "Commencer" / "J’ai déjà un compte" sit over the carousel. The old Welcome background hot-linked from images.unsplash.com is gone. New token `--ivory`. The 5 slides are precached (`lamsa-v1`: 21 entries).
+- 7c (micro-interactions / polish): pending.
 
 ### Phase 5 — Quality and delivery
 

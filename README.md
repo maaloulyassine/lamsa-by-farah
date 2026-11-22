@@ -8,6 +8,26 @@ A mobile-first wedding-planning web app (PWA) for couples in Tunisia: plan the b
 
 > Create an account on the live site to explore it. The demo uses a real Supabase backend; contact requests are recorded in the app only and are never sent to providers.
 
+## Screenshots
+
+Desktop, 1280×800, captured from the production build with demo data.
+
+**Welcome carousel** — full-screen photos with rotating slogans
+
+![Welcome carousel](docs/screenshots/welcome.webp)
+
+**Dashboard** — greeting, banner, category shortcuts, countdown and upcoming tasks
+
+![Dashboard](docs/screenshots/dashboard.webp)
+
+**Services catalogue** — real providers, search and filters, labelled category illustrations
+
+![Services catalogue](docs/screenshots/services.webp)
+
+**Admin panel** *(post-MVP bonus)* — contact requests with their status
+
+![Admin panel](docs/screenshots/admin.webp)
+
 ---
 
 ## Features

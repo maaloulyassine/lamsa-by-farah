@@ -14,12 +14,7 @@
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },
-  "optionalDependencies": {
-    "@oxlint/binding-win32-x64-msvc": "^1.94.0"
-  },
   "devDependencies": {
-    "@types/react": "^19.3.0",
-    "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^5.2.0",
     "oxlint": "^1.90.0",
     "supabase": "^3.2.0",

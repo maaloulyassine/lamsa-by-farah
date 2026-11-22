@@ -106,7 +106,7 @@ Actual Phase 2 validation:
 - Phase 1 navigation and layout passed manual smoke testing without regressions.
 - The installed environment emitted a Node compatibility warning with Node `20.15.0`; Vite requires Node `20.19+` or `22.12+`. GitHub Actions used Node `20.19.0` at the time (Node `22.12.0` since Phase 5b).
 
-**Next phase: Phase 5 — Quality and delivery (not started).**
+**All phases complete (Phase 5 — Quality and delivery finished in 5e, tag `v1.3.0-mvp-polished`).**
 
 ### Phase 4 — Product functionality — COMPLETE (live)
 
@@ -125,12 +125,11 @@ The MVP is deployed and publicly accessible.
 - RLS verified in production: anonymous gets 42501 on all private tables; cross-user isolation confirmed with two test accounts
 - Service worker active at `/lamsa-by-farah/` scope; cache `lamsa-v1` contains only static assets
 
-**Phase 5 fixes needed before considering the MVP "polished":**
-- English auth error messages (Supabase raw text shown to users)
-- Node 20 → Node 24 GitHub Actions upgrade — done in Phase 5b
-- `anon` and `authenticated` still hold TRUNCATE from project defaults — resolved in Phase 5c (migration 0008)
-- `service_role` lacks full grants on the public tables — resolved in Phase 5c (migration 0008)
-- Future tables will need their own grant migration — cloud does not grant automatically (unlike local Supabase)
+**Phase 5 fixes (all resolved):**
+- English auth error messages → French (5a)
+- Node 20 → Node 24 GitHub Actions runtime, Node 22.12 build (5b)
+- `anon` / `authenticated` TRUNCATE revoked, `service_role` CRUD granted (5c, migration 0008)
+- Future tables still need their own grant migration — see Known issues → Technical decisions
 
 ## Remaining work and future phases
 
@@ -232,7 +231,7 @@ The MVP is deployed and publicly accessible.
 - 5a (French auth errors): complete. 5b (GitHub Actions node24 runtime, Node 22.12 build): complete.
 - 5c (grants cleanup): migration `20261122000008_phase5c_grants_cleanup.sql` revokes TRUNCATE from `anon`/`authenticated` on every public table and grants `service_role` SELECT/INSERT/UPDATE/DELETE on all public tables (+ sequences, + EXECUTE on `set_wedding_plan(uuid)`). Applied locally and on the cloud. Reversal restores the recorded pre-5c cloud privileges. `anon`/`authenticated` still hold REFERENCES and TRIGGER from the project defaults (not usable through PostgREST; not in scope).
 - 5d (README): complete — README rewritten for portfolio and handoff (features, stack, architecture, local setup, deployment incl. seed command and GRANT quirk, PWA install, design system, admin, provider data, testing, limitations, license).
-- 5e (known issues + final tag): pending.
+- 5e (final polish): complete — four README screenshots (`docs/screenshots/`), known issues consolidated (open / decisions / resolved), unused packages removed (`@types/react`, `@types/react-dom`, explicit `@oxlint/binding-win32-x64-msvc`), final end-to-end on the live site, tag `v1.3.0-mvp-polished`.
 
 - Run focused functional, responsive, accessibility, security, and RLS validation.
 - Test Android Chrome and iPhone Safari when available.
@@ -253,34 +252,46 @@ The MVP is deployed and publicly accessible.
 
 ## Known issues and technical decisions
 
-- Provider cards show category illustration photos (from Unsplash, free commercial license) with a 'Photo d'illustration' badge. These are NOT photos of the real providers. The 'Voir sur Google Maps' link on each detail page opens the real venue on Google Maps. Real provider photos via Google Places API deferred to a future phase.
-- The Profile header link “Modifier mon profil” is also an inactive placeholder (pre-existing since Phase 1), in addition to the two Profile menu items listed below; same Phase 5 decision applies.
-- Contact request statuses `sent` and `closed` are set from the Phase 6 admin screen (post-MVP bonus) by users promoted with `app_metadata.is_admin`; without a promoted admin, every request stays “En attente”.
-- Column guard blocks content edits from service_role and Dashboard SQL when auth.uid() is NULL (it treats any non-owner as an admin). Correct security behavior — admins should never modify client content; status-only updates still work. For manual fixes: `ALTER TABLE contact_requests DISABLE TRIGGER contact_requests_admin_column_guard;` → `UPDATE …;` → `ALTER TABLE contact_requests ENABLE TRIGGER contact_requests_admin_column_guard;`.
-- Profile menu items 'Mon projet de mariage' and 'Paramètres' are inactive placeholder buttons. They require dedicated screens (project edit, settings) not in MVP scope. Spec §11 rule 'Aucun bouton principal inactif' is partially violated — the app has 2 dead buttons in Profile. Phase 5 consideration: either implement the screens or remove the items.
-- The heart button changes both `aria-pressed` and its `aria-label` (“Ajouter aux favoris” / “Retirer des favoris”), as specified. Some screen readers may announce the state twice; Phase 5 accessibility review can choose a fixed label with `aria-pressed` only.
-- Le filtre de disponibilité prestataire n'est pas implémenté dans le MVP. Le champ `providers.availability_notes` est du texte libre et ne permet pas de répondre de manière fiable à « disponible à la date du mariage ? ». Inventer une disponibilité structurée violerait les règles de démonstration du cahier des charges (§8). Cette fonctionnalité est reportée à une phase future qui ajoutera un champ de disponibilité structuré.
-- Price and rating filters are hidden in the current release because real pricing and review data has not been collected yet. The database schema supports them (price_from, price_to, rating, review_count) and they will be re-enabled when real data is added.
-- Provider coverage: 5 governorates only (Tunis, Nabeul, Sousse, Monastir, Bizerte) plus 2 providers in Ariana moved from the Tunis section by address; the remaining 18 governorates are deferred. More providers can be added with the same seed pattern.
-- Real reviews are not available: every provider has a 4.5 placeholder rating and 0 reviews, labelled as indicative in the UI.
-- 5 Tunis venues (Allians Wedding Venue, El Firma, El Khima, Espace Fête Prestige, Salle des Fêtes L'Émeraude) have `phone = NULL`, awaiting the owner's research; the detail page shows « Téléphone non renseigné ».
-- Real providers have no cover images (gradient placeholder + category icon), no prices (« Tarif sur demande »), no availability notes, website or social links yet.
-- Demo providers are fully removed (local and cloud); 2 cloud contact requests that referenced them were deleted by the Phase 6.6 migration.
-- Dashboard quick-tile categories are hardcoded Phase 1 tuples. Cosmetic — deferred to Phase 5 cleanup.
-- All 20 seeded providers have rating ≥ 4.5, so the 4.5 ★ filter excludes none in the current seed; filtering exclusion was verified at 5 ★ (0 results).
-- Vite/rolldown production build was broken from v0.3-supabase onward: the bundle contained corrupted preload markers (`void 0<hash>`), causing a blank page in the browser. Fixed in `7d42dbe` by Vite downgrade to 7.x (`vite@^7.3.8`, `@vitejs/plugin-react@^5.2.0`). Future Vite major upgrades must include a manual preview smoke test, not just `npm run build` exit 0.
-- `@rolldown/binding-win32-x64-msvc` remains in devDependencies from the Vite 8 period; it is unused with Vite 7 and can be removed in Phase 5 cleanup.
-- Offline reload renders the app shell, but the auth screen then shows the raw message “TypeError: Failed to fetch” from `AuthContext` (pre-existing; French copy deferred to Phase 5).
-- Delete uses native window.confirm (same as 4a tasks). Polish to styled modal in a future phase.
-- Budget taxonomy reuses the 10 provider categories. Items like invitations, jewelry, honeymoon have no dedicated category and must be logged under an existing category with a note. Dedicated budget taxonomy deferred to a future phase.
-- The flower icon is used 3× in the category seed (`coiffure-maquillage`, `decoration`, `fleurs`) — cosmetic, differentiate in a future phase.
-- Dashboard budget summary card (spec §4.3) — deferred to a small follow-up after 4b.
-- TND formatting uses `Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' })`: U+202F groups thousands and the engine emits U+00A0 (not U+202F) between the amount and “TND”. No “DT” string remains in `src/`.
-- Overspend ring with total budget = 0 shows “—” + “Dépassement” (a percentage of 0 is undefined).
-- The application currently uses local React state and resets data on refresh by design.
-- Remote Unsplash images are temporary demonstration assets and should be replaced or formalized before production delivery.
-- The current prototype uses local state navigation instead of URL routing; this is acceptable for Phase 1.
-- The current app is intentionally not connected to Supabase or PWA infrastructure.
-- Vite’s current installed version recommends a newer Node runtime than the available `20.15.0`; upgrade the runtime before relying on future Vite features or deployment tooling.
-- Native Windows bindings for the scaffold’s Vite/Oxlint toolchain are present in development dependencies so local validation works on this environment.
+### Open issues
 
+- **Price and rating filters hidden** — real pricing and review data has not been collected yet. The schema already supports them (`price_from`, `price_to`, `rating`, `review_count`); they will be re-enabled when real data exists.
+- **Partial coverage** — providers in 5 main governorates (Sousse 49, Monastir 42, Tunis 36, Bizerte 32, Nabeul 28) plus 2 in Ariana; the remaining 18 of 24 governorates are not covered yet. More providers can be added with the same seed pattern.
+- **Dashboard quick-tile categories are hardcoded** Phase 1 tuples in `App.jsx` (cosmetic).
+- **3 inactive Profile buttons** — « Mon projet de mariage », « Paramètres » and the header link « Modifier mon profil » have no screen yet (spec §11 « Aucun bouton principal inactif » is partially violated). Either implement the screens or remove the items.
+- **Dashboard task check boxes are inactive** — the Dashboard's « Prochaines tâches » rows render `TaskRow` without an `onToggle`, so ticking a box there does nothing; marking a task done works from Mon planning (check box or status select). Found during the Phase 5e live test; fixing it needs an application-code change.
+- **Dashboard budget summary card** (spec §4.3) — deferred; the budget is only shown on Mon budget.
+- **Favorite button double announcement** — the heart changes both `aria-pressed` and its `aria-label` (« Ajouter aux favoris » / « Retirer des favoris »); some screen readers announce the state twice. A fixed label with `aria-pressed` only would be cleaner.
+- **Native `window.confirm` for deletions** (tasks, expenses) — to be replaced by a styled confirmation modal.
+- **5 Tunis venues without phone** (Allians Wedding Venue, El Firma, El Khima, Espace Fête Prestige, Salle des Fêtes L'Émeraude) — `phone = NULL`, the detail page shows « Téléphone non renseigné ».
+- **No real reviews** — every provider shows a 4.5 placeholder rating with 0 reviews, labelled as indicative in the UI.
+- **Generic category illustrations** — provider cards and detail pages show one Unsplash illustration per category with a « Photo d'illustration » badge; they are not photos of the real providers. « Voir sur Google Maps » opens the real place. Real provider photos (e.g. Google Places API) are deferred.
+- **Missing provider details** — no prices (« Tarif sur demande »), availability notes, website or social links yet.
+- **Availability filter not implemented** — `providers.availability_notes` is free text and cannot reliably answer « disponible à la date du mariage ? »; inventing structured availability would break the specification's demonstration rules (§8). Deferred until a structured availability field exists.
+- **Raw technical messages outside the auth forms** — `AuthContext` can show the browser's « TypeError: Failed to fetch » after an offline reload, and the space-loading and wedding-setup errors can show raw Supabase messages (auth form errors were translated in 5a).
+- **Budget taxonomy reuses the 10 provider categories** — items such as invitations, jewellery or honeymoon must be logged under an existing category with a note.
+- **The flower icon is used for 3 categories** (`coiffure-maquillage`, `decoration`, `fleurs`) — cosmetic.
+
+### Technical decisions (working as intended)
+
+- **Contact-request column guard** — `contact_requests_admin_column_guard` blocks content edits from `service_role` and Dashboard SQL when `auth.uid()` is NULL (it treats any non-owner as an admin); status-only updates still work. For manual fixes: `ALTER TABLE contact_requests DISABLE TRIGGER contact_requests_admin_column_guard;` → `UPDATE …;` → `ALTER TABLE contact_requests ENABLE TRIGGER contact_requests_admin_column_guard;`.
+- **Contact-request statuses** `sent` / `closed` are only set from the post-MVP admin screen by users promoted with `app_metadata.is_admin`; without an admin every request stays « En attente ». A request is never presented as a booking.
+- **Future tables need an explicit GRANT migration** — the cloud project does not grant table privileges automatically (unlike the local stack); every new table needs grants for `authenticated` (and `anon` if public) in addition to RLS policies.
+- **REFERENCES and TRIGGER remain granted to `anon` / `authenticated`** from the project defaults (documented in 5c); they cannot be used through PostgREST and were left out of scope.
+- **TND formatting** — `Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' })`: U+202F groups thousands, U+00A0 separates the amount and « TND ». No « DT » string in `src/`.
+- **Overspend with a total budget of 0** — the ring shows « — » + « Dépassement » (a percentage of 0 is undefined).
+- **Navigation uses React state, not URL routing** — no deep links or browser-history navigation between screens.
+- **Vite upgrades need a preview smoke test** — the Vite 8 / rolldown build once produced corrupted preload markers and a blank page while `npm run build` exited 0 (fixed in `7d42dbe` by moving to Vite 7). Any future Vite major upgrade must be checked in `vite preview`, not only by the build exit code.
+- **oxlint's Windows binary** is installed through oxlint's own optional dependencies (the explicit `@oxlint/binding-win32-x64-msvc` entry was removed in 5e after a clean `npm ci` + lint check).
+
+### Recently resolved
+
+- English Supabase auth errors on the sign-in / sign-up forms → French messages (Phase 5a).
+- GitHub Actions on the deprecated Node 20 runtime → actions on node24, build on Node 22.12 (Phase 5b).
+- `anon` / `authenticated` TRUNCATE privilege → revoked (Phase 5c, migration 0008).
+- `service_role` missing CRUD grants on public tables → granted (Phase 5c, migration 0008).
+- Hot-linked images.unsplash.com photos (welcome card, dashboard hero) → self-hosted WebP files (Phases 7b, 7c).
+- Gradient-only provider covers → labelled category illustrations (Phase 6.7).
+- Demo providers → replaced by 189 real providers; 2 cloud contact requests that referenced demo providers were deleted (Phase 6.6).
+- Broken Vite 8 / rolldown production build → Vite 7 (`7d42dbe`); local Node 20.15 → 20.19 / 22.12.
+- Unused packages (`@rolldown/binding-win32-x64-msvc` from the Vite 8 period, `@types/react`, `@types/react-dom`, the explicit oxlint Windows binding) → removed.
+- Obsolete Phase 1 notes (local-state data reset on refresh, app not connected to Supabase / PWA, 4.5 ★ filter note on the 20 demo providers) → no longer apply.

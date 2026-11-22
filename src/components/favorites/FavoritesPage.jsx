@@ -3,6 +3,7 @@ import { listFavoriteProviders } from '../../services/favoritesService'
 import { ProviderCard } from '../providers/ProviderCard'
 import { ProviderDetail } from '../providers/ProviderDetail'
 import { useFavoriteToggle } from './useFavoriteToggle'
+import { Flourish } from '../ui/Flourish'
 
 const SUCCESS_TIMEOUT_MS = 5000
 const CONTACT_SUCCESS = 'Votre demande a été envoyée. Le prestataire doit confirmer sa disponibilité.'
@@ -129,6 +130,7 @@ export function FavoritesPage({ wedding, userId, onDiscover }) {
         <div>
           <p className="eyebrow">Votre sélection</p>
           <h1 id="favorites-page-title">Mes favoris</h1>
+          <Flourish className="title-flourish" />
         </div>
       </div>
       {toasts}

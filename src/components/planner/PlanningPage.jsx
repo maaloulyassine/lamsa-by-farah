@@ -4,6 +4,9 @@ import { listSentContactRequests } from '../../services/contactRequestsService'
 
 const sentWeddingDateFormatter = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
 import { TaskModal } from './TaskModal'
+import { Flourish } from '../ui/Flourish'
+
+const SUCCESS_TIMEOUT_MS = 4000
 
 const statusLabels = {
   todo: 'À faire',
@@ -35,6 +38,12 @@ export function PlanningPage({ wedding, onNavigateToRequests }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  // Auto-dismiss the success toast (it previously relied on an animation that never ran).
+  useEffect(() => {
+    if (!success) return undefined
+    const id = setTimeout(() => setSuccess(''), SUCCESS_TIMEOUT_MS)
+    return () => clearTimeout(id)
+  }, [success])
   const [currentMonth, setCurrentMonth] = useState(() => {
     const now = new Date()
     return new Date(now.getFullYear(), now.getMonth(), 1)
@@ -185,13 +194,13 @@ export function PlanningPage({ wedding, onNavigateToRequests }) {
   return (
     <main>
       <div className="page-title">
-        <div><p className="eyebrow">Votre organisation</p><h1>Mon planning</h1></div>
+        <div><p className="eyebrow">Votre organisation</p><h1>Mon planning</h1><Flourish className="title-flourish" /></div>
         <div className="planning-actions">
           {generatedCount > 0 && <button className="secondary-button" onClick={regenerate}>Régénérer</button>}
           <button className="primary-button compact-button" onClick={openCreate}>+ Ajouter</button>
         </div>
       </div>
-      {success && <p className="success-banner" onAnimationEnd={() => setSuccess('')}>{success}</p>}
+      {success && <p className="success-banner" role="status">{success}</p>}
       {error && <div className="error-banner"><span>{error}</span><button onClick={reload}>Réessayer</button></div>}
       {sentRequests.length > 0 && (
         <section className="sent-requests-section" aria-labelledby="sent-requests-title">

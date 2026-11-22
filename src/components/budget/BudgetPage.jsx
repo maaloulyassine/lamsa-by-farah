@@ -11,6 +11,7 @@ import { listWeddingTasks } from '../../services/tasksService'
 import { formatTnd, mutationErrorMessage } from '../../utils/format'
 import { BudgetEditModal } from './BudgetEditModal'
 import { ExpenseModal } from './ExpenseModal'
+import { Flourish } from '../ui/Flourish'
 
 const palette = ['#bd9278', '#dfc1a8', '#ead9ce', '#baaea3', '#d7b08c', '#715340', '#a97b63', '#8c7c70', '#c8a58d', '#9b7864']
 const SUCCESS_TIMEOUT_MS = 4000
@@ -92,6 +93,15 @@ export function BudgetPage({ wedding, refreshWedding }) {
   // Budget = 0 with any expense is a legitimate overspend (remaining < 0).
   const isOverBudget = remaining < 0
   const percent = hasDefinedBudget ? Math.round((totalSpent / totalBudget) * 100) : null
+  // Ring animates from its previous value (0 on mount) to the target: the registered --percent
+  // property transitions in CSS; the value is applied one frame after mount so the change is visible.
+  const ringTarget = Math.min(percent || 0, 100)
+  const [ringPercent, setRingPercent] = useState(0)
+  useEffect(() => {
+    let inner = 0
+    const outer = requestAnimationFrame(() => { inner = requestAnimationFrame(() => setRingPercent(ringTarget)) })
+    return () => { cancelAnimationFrame(outer); cancelAnimationFrame(inner) }
+  }, [ringTarget])
 
   const categoryBreakdown = useMemo(() => {
     const enriched = categories.map((category, index) => {
@@ -163,6 +173,7 @@ export function BudgetPage({ wedding, refreshWedding }) {
         <div>
           <p className="eyebrow">Gestion financière</p>
           <h1 id="budget-page-title">Mon budget</h1>
+          <Flourish className="title-flourish" />
         </div>
         <div className="budget-actions">
           <button className="secondary-button" onClick={() => setBudgetModalOpen(true)}>
@@ -172,7 +183,7 @@ export function BudgetPage({ wedding, refreshWedding }) {
         </div>
       </div>
 
-      {success && <p className="success-banner" role="status" onAnimationEnd={() => setSuccess('')}>{success}</p>}
+      {success && <p className="success-banner" role="status">{success}</p>}
 
       {!loading && !summaryError && isOverBudget && (
         <div className="budget-alert" role="alert">
@@ -200,7 +211,7 @@ export function BudgetPage({ wedding, refreshWedding }) {
         <>
           <div className="budget-overview">
             <section className="content-card budget-ring-card" aria-label="Synthèse du budget">
-              <div className={`ring ${isOverBudget ? 'ring-overbudget' : ''}`} style={{ '--percent': `${Math.min(percent || 0, 100)}%` }}>
+              <div className={`ring ${isOverBudget ? 'ring-overbudget' : ''}`} style={{ '--percent': `${ringPercent}%` }} data-percent-target={ringTarget}>
                 <div data-testid="budget-ring">{ringCenter}</div>
               </div>
               <div className="budget-totals">

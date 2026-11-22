@@ -12,6 +12,7 @@ import { MyRequestsPage } from './components/contact/MyRequestsPage'
 import { AdminRequestsPage } from './components/admin/AdminRequestsPage'
 import { formatTnd } from './utils/format'
 import { Wordmark } from './components/ui/Wordmark'
+import { Flourish } from './components/ui/Flourish'
 import { WelcomeCarousel } from './components/welcome/WelcomeCarousel'
 
 const categories = [
@@ -123,7 +124,7 @@ function NavItem({ icon, label, active, onClick }) {
 }
 
 function PageTitle({ eyebrow, title, action }) {
-  return <div className="page-title"><div><p className="eyebrow">{eyebrow}</p><h1>{title}</h1></div>{action}</div>
+  return <div className="page-title"><div><p className="eyebrow">{eyebrow}</p><h1>{title}</h1><Flourish className="title-flourish" /></div>{action}</div>
 }
 
 function Dashboard({ setActivePage, wedding, profile }) {

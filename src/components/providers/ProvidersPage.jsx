@@ -5,6 +5,7 @@ import { useFavoriteToggle } from '../favorites/useFavoriteToggle'
 import { ProviderCard } from './ProviderCard'
 import { ProviderDetail } from './ProviderDetail'
 import { ProviderFilters } from './ProviderFilters'
+import { Flourish } from '../ui/Flourish'
 
 const EMPTY_FILTERS = {
   search: '',
@@ -146,7 +147,7 @@ export function ProvidersPage({ wedding, userId }) {
 
   const toast = (
     <>
-      {success && <p className="success-banner" role="status" onAnimationEnd={() => setSuccess('')}>{success}</p>}
+      {success && <p className="success-banner" role="status">{success}</p>}
       {toggleError && <div className="error-banner favorite-toast" role="alert"><span>{toggleError}</span><button type="button" onClick={clearToggleError}>Fermer</button></div>}
       {favoritesError && <div className="error-banner" role="alert"><span>{favoritesError}</span><button type="button" onClick={retryFavorites}>Réessayer</button></div>}
     </>
@@ -193,6 +194,7 @@ export function ProvidersPage({ wedding, userId }) {
         <div>
           <p className="eyebrow">Tout pour votre grand jour</p>
           <h1 id="providers-page-title">Trouver un service</h1>
+          <Flourish className="title-flourish" />
         </div>
       </div>
       {toast}

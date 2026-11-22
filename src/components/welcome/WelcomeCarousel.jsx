@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Flourish, Wordmark } from '../ui/Wordmark'
+import { Flourish } from '../ui/Flourish'
+import { Wordmark } from '../ui/Wordmark'
 
 const BASE = import.meta.env.BASE_URL
 

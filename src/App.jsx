@@ -13,6 +13,8 @@ import { AdminRequestsPage } from './components/admin/AdminRequestsPage'
 import { formatTnd, mutationErrorMessage } from './utils/format'
 import { Wordmark } from './components/ui/Wordmark'
 import { Flourish } from './components/ui/Flourish'
+import { Burst } from './components/ui/Burst'
+import { RollingNumber } from './components/ui/RollingNumber'
 import { WelcomeCarousel } from './components/welcome/WelcomeCarousel'
 
 const categories = [
@@ -127,6 +129,8 @@ function PageTitle({ eyebrow, title, action }) {
   return <div className="page-title"><div><p className="eyebrow">{eyebrow}</p><h1>{title}</h1><Flourish className="title-flourish" /></div>{action}</div>
 }
 
+const TASK_LEAVE_MS = 560
+
 function Dashboard({ setActivePage, wedding, profile }) {
   const [dashboardNow, setDashboardNow] = useState(() => new Date())
   const [tasks, setTasks] = useState([])
@@ -135,6 +139,8 @@ function Dashboard({ setActivePage, wedding, profile }) {
   const [success, setSuccess] = useState('')
   const [toggleError, setToggleError] = useState('')
   const [pendingTaskId, setPendingTaskId] = useState(null)
+  const [leavingTaskId, setLeavingTaskId] = useState(null)
+  const [barPercent, setBarPercent] = useState(0)
 
   // Auto-dismiss the success toast (same 4 s as Planning).
   useEffect(() => {
@@ -155,12 +161,17 @@ function Dashboard({ setActivePage, wedding, profile }) {
       setToggleError(mutationErrorMessage(updateError, 'Impossible d’enregistrer le statut. Réessayez.'))
       return
     }
-    setTasks((current) => current.map((item) => (item.id === task.id ? { ...item, status } : item)))
     setSuccess('Le statut a été enregistré.')
+    const apply = () => setTasks((current) => current.map((item) => (item.id === task.id ? { ...item, status } : item)))
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    if (status !== 'done' || reduce) { apply(); return }
+    // Confetti on the box, then the row slides out before the list updates.
+    setLeavingTaskId(task.id)
+    setTimeout(() => { apply(); setLeavingTaskId(null) }, TASK_LEAVE_MS)
   }
 
   useEffect(() => {
-    const id = setInterval(() => setDashboardNow(new Date()), 60_000)
+    const id = setInterval(() => setDashboardNow(new Date()), 10_000)
     return () => clearInterval(id)
   }, [])
 
@@ -176,24 +187,38 @@ function Dashboard({ setActivePage, wedding, profile }) {
   }, [wedding.id])
 
   const upcoming = tasks.filter((task) => task.status !== 'done').slice(0, 3)
+  // Countdown to the start (00:00) of the wedding day; preparation = done tasks / all tasks.
+  const countdownTarget = wedding?.wedding_date ? new Date(`${wedding.wedding_date}T00:00:00`) : null
+  const remainingMs = countdownTarget ? Math.max(0, countdownTarget - dashboardNow) : 0
+  const cdDays = Math.floor(remainingMs / 86_400_000)
+  const cdHours = Math.floor((remainingMs % 86_400_000) / 3_600_000)
+  const cdMinutes = Math.floor((remainingMs % 3_600_000) / 60_000)
+  const doneCount = tasks.filter((task) => task.status === 'done').length
+  const preparation = tasks.length ? Math.round((doneCount / tasks.length) * 100) : 0
   const greetingName = profile?.full_name?.trim() || 'vous'
   const weddingDate = wedding?.wedding_date ? new Date(`${wedding.wedding_date}T12:00:00`) : null
   const weddingDateLabel = weddingDate
     ? weddingDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
     : 'Date à définir'
   const initials = greetingName[0]?.toUpperCase() || 'F'
+
+  useEffect(() => {
+    let inner = 0
+    const outer = requestAnimationFrame(() => { inner = requestAnimationFrame(() => setBarPercent(preparation)) })
+    return () => { cancelAnimationFrame(outer); cancelAnimationFrame(inner) }
+  }, [preparation])
   return <><PageTitle eyebrow={new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(dashboardNow)} title={<>Bonjour {greetingName} <span className="wave">👋</span></>} action={<button className="profile-chip" onClick={() => setActivePage('profile')}><span>{initials}</span><b>{greetingName.split(' ')[0]}</b><Icon name="chevron" size={14} /></button>} /><p className="intro-copy">Prête à organiser le plus beau jour de votre vie ?</p>
     {success && <p className="success-banner" role="status">{success}</p>}
     {toggleError && <div className="error-banner" role="alert"><span>{toggleError}</span><button onClick={() => setToggleError('')} aria-label="Fermer">×</button></div>}
-    <section className="hero-card"><div className="hero-image" /><div className="hero-overlay"><span className="pill light">Votre espace mariage</span><h2>Rêvez grand.<br /><em>On s’occupe du reste.</em></h2><button className="ghost-button" onClick={() => setActivePage('services')}>Découvrir les services <Icon name="arrow" size={15} /></button></div></section>
-    <div className="quick-grid">{categories.map(([label, icon]) => <button key={label} className="quick-card" onClick={() => setActivePage('services')}><span className="quick-icon"><Icon name={icon} size={23} /></span><span>{label}</span></button>)}</div>
-    <div className="dashboard-grid"><section className="content-card countdown-card"><div className="card-heading"><div><p className="eyebrow">Le grand jour</p><h2>{weddingDateLabel}</h2></div><span className="calendar-badge"><Icon name="calendar" size={19} /></span></div><div className="countdown"><div><strong>{weddingDate ? Math.max(0, Math.ceil((weddingDate - dashboardNow) / 86400000)) : '--'}</strong><span>jours</span></div><b>·</b><div><strong>08</strong><span>heures</span></div><b>·</b><div><strong>42</strong><span>minutes</span></div></div><div className="progress-label"><span>Votre préparation</span><b>42%</b></div><div className="progress"><span style={{ width: '42%' }} /></div><button className="text-button" onClick={() => setActivePage('planning')}>Voir mon planning <Icon name="arrow" size={14} /></button></section>
-      <section className="content-card tasks-card"><div className="card-heading"><div><p className="eyebrow">À ne pas oublier</p><h2>Prochaines tâches</h2></div><button className="round-button" onClick={() => setActivePage('planning')}><Icon name="plus" size={17} /></button></div>{tasksLoading ? <div className="loading-state">Chargement...</div> : tasksError ? <div className="error-banner">{tasksError}</div> : upcoming.length === 0 ? <div className="empty-day"><p>Aucune tâche à venir</p><button className="text-button" onClick={() => setActivePage('planning')}>Générer le planning</button></div> : <div className="task-list compact">{upcoming.map((task) => <TaskRow key={task.id} task={{ ...task, date: task.task_date }} onToggle={() => toggleTask(task)} disabled={pendingTaskId === task.id} />)}</div>}<button className="text-button" onClick={() => setActivePage('planning')}>Voir toutes les tâches <Icon name="arrow" size={14} /></button></section></div>
+    <section className="hero-card dash-enter" style={{ '--i': 1 }}><div className="hero-image" /><div className="hero-overlay"><span className="pill light">Votre espace mariage</span><h2>Rêvez grand.<br /><em>On s’occupe du reste.</em></h2><button className="ghost-button" onClick={() => setActivePage('services')}>Découvrir les services <Icon name="arrow" size={15} /></button></div></section>
+    <div className="quick-grid dash-enter" style={{ '--i': 2 }}>{categories.map(([label, icon]) => <button key={label} className="quick-card" onClick={() => setActivePage('services')}><span className="quick-icon"><Icon name={icon} size={23} /></span><span>{label}</span></button>)}</div>
+    <div className="dashboard-grid"><section className="content-card countdown-card dash-enter" style={{ '--i': 3 }}><div className="card-heading"><div><p className="eyebrow">Le grand jour</p><h2>{weddingDateLabel}</h2></div><span className="calendar-badge"><Icon name="calendar" size={19} /></span></div><div className="countdown"><div><strong><RollingNumber value={countdownTarget ? cdDays : '--'} testId="countdown-days" /></strong><span>jours</span></div><b>·</b><div><strong><RollingNumber value={countdownTarget ? cdHours : '--'} pad={2} testId="countdown-hours" /></strong><span>heures</span></div><b>·</b><div><strong><RollingNumber value={countdownTarget ? cdMinutes : '--'} pad={2} testId="countdown-minutes" /></strong><span>minutes</span></div></div><div className="progress-label"><span>Votre préparation</span><b data-testid="preparation-percent">{preparation}%</b></div><div className="progress" role="progressbar" aria-label="Votre préparation" aria-valuemin={0} aria-valuemax={100} aria-valuenow={preparation}><span className="progress-fill" style={{ transform: `scaleX(${barPercent / 100})` }} /></div><button className="text-button" onClick={() => setActivePage('planning')}>Voir mon planning <Icon name="arrow" size={14} /></button></section>
+      <section className="content-card tasks-card dash-enter" style={{ '--i': 4 }}><div className="card-heading"><div><p className="eyebrow">À ne pas oublier</p><h2>Prochaines tâches</h2></div><button className="round-button" onClick={() => setActivePage('planning')}><Icon name="plus" size={17} /></button></div>{tasksLoading ? <div className="loading-state">Chargement...</div> : tasksError ? <div className="error-banner">{tasksError}</div> : upcoming.length === 0 ? <div className="empty-day"><p>Aucune tâche à venir</p><button className="text-button" onClick={() => setActivePage('planning')}>Générer le planning</button></div> : <div className="task-list compact">{upcoming.map((task) => <TaskRow key={task.id} task={{ ...task, date: task.task_date }} onToggle={() => toggleTask(task)} disabled={pendingTaskId === task.id || leavingTaskId === task.id} leaving={leavingTaskId === task.id} />)}</div>}<button className="text-button" onClick={() => setActivePage('planning')}>Voir toutes les tâches <Icon name="arrow" size={14} /></button></section></div>
   </>
 }
 
-function TaskRow({ task, onToggle, disabled = false }) {
-  return <div className={`task-row ${task.status === 'done' ? 'completed' : ''}`}><button className="check-button" onClick={onToggle} disabled={disabled} aria-label={`Marquer ${task.title} comme ${task.status === 'done' ? 'à faire' : 'terminée'}`}>{task.status === 'done' && <Icon name="check" size={14} />}</button><span className="task-icon"><Icon name={task.icon || 'check'} size={17} /></span><div><strong>{task.title}</strong><small>{new Date(`${task.date}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</small></div></div>
+function TaskRow({ task, onToggle, disabled = false, leaving = false }) {
+  return <div className={`task-row ${task.status === 'done' || leaving ? 'completed' : ''} ${leaving ? 'is-leaving' : ''}`}><button className="check-button" onClick={onToggle} disabled={disabled} aria-label={`Marquer ${task.title} comme ${task.status === 'done' ? 'à faire' : 'terminée'}`}>{(task.status === 'done' || leaving) && <Icon name="check" size={14} />}{leaving && <Burst variant="confetti" />}</button><span className="task-icon"><Icon name={task.icon || 'check'} size={17} /></span><div><strong>{task.title}</strong><small>{new Date(`${task.date}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</small></div></div>
 }
 
 function Profile({ setActivePage }) {

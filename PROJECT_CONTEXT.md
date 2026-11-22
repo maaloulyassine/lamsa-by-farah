@@ -226,6 +226,14 @@ The MVP is deployed and publicly accessible.
 - 7b (welcome carousel): `src/components/welcome/WelcomeCarousel.jsx` replaces the Welcome card. 5 full-screen slides (`public/images/welcome/slide-1…5.webp`, 1600×900, Unsplash License) with the wordmark, a Cormorant italic slogan and a flourish; 0.8 s opacity fade, auto-rotate every 6 s, 30 s pause after a dot / arrow / swipe / arrow-key interaction, desktop hover arrows (44 px), 50 px swipe threshold, next-two-image preload, `prefers-reduced-motion` disables auto-rotate and transitions. Per-slide `background-position` keeps the subject visible on portrait screens. "Commencer" / "J’ai déjà un compte" sit over the carousel. The old Welcome background hot-linked from images.unsplash.com is gone. New token `--ivory`. The 5 slides are precached (`lamsa-v1`: 21 entries).
 - 7c (polish): dashboard hero uses the self-hosted `images/welcome/slide-4.webp` (no images.unsplash.com reference left in `src/` or `dist/`); `src/components/ui/Flourish.jsx` under the six page titles; hover lift (pointer devices only) on provider cards, task / planner / expense / budget rows and request cards; shadow tokens `--shadow-sm/md/lg/xl`; global 2 px terracotta `:focus-visible` rings (3 `outline: none/0` rules removed); budget ring animates via a registered `--percent` (`@property`, 0.8 s) applied one frame after mount; success messages are fixed top-right toasts sliding in (300 ms) and auto-dismissed by timers (Planning gained its missing 4 s timer); tablet layout fixes (calendar columns can shrink, budget overview stacks 651–1100 px, planning columns 1.15fr/1fr, providers 2 columns at 520–650 px, modals 500 px). Reduced motion disables the toast, ring and lift animations.
 
+### Animations — lot 1 (v1.4.0) — complete
+
+- Signature flourish draws itself (`.flourish`, SVG `pathLength=1`, 1.3 s) everywhere `Flourish` is used; on Welcome it redraws on each slide.
+- Ken Burns on the welcome photos: dedicated `.welcome-slide-image` layer, slow zoom/drift (7.6 s, direction per slide); the slide fading out keeps its motion (`kb-run` on current + previous slide).
+- Dashboard: real countdown to 00:00 on the wedding day (days / hours / minutes, refreshed every 10 s) with rolling digits (`RollingNumber`); real « Votre préparation » = done tasks / all tasks with a bar filling from 0; cards rise in cascade (70 ms steps).
+- Celebrations (`Burst`): heart pop + 8 particles when a favorite is added (not on removal or load); 12-piece confetti when a task is ticked done on the Dashboard (the row then slides out) and in Planning.
+- Everything is disabled under `prefers-reduced-motion`. No new dependency, no database or service-worker change.
+
 ### Phase 5 — Quality and delivery
 
 - 5a (French auth errors): complete. 5b (GitHub Actions node24 runtime, Node 22.12 build): complete.
@@ -292,6 +300,7 @@ The MVP is deployed and publicly accessible.
 - Gradient-only provider covers → labelled category illustrations (Phase 6.7).
 - Demo providers → replaced by 189 real providers; 2 cloud contact requests that referenced demo providers were deleted (Phase 6.6).
 - Broken Vite 8 / rolldown production build → Vite 7 (`7d42dbe`); local Node 20.15 → 20.19 / 22.12.
+- Hard-coded Dashboard values (« 08 heures », « 42 minutes », « Votre préparation 42% ») → computed from the wedding date and the tasks (v1.4.0).
 - Inactive Dashboard task check boxes (`TaskRow` rendered without `onToggle` since Phase 4a) → wired to the same status update as Planning, with toast and error banner (v1.3.1).
 - Unused packages (`@rolldown/binding-win32-x64-msvc` from the Vite 8 period, `@types/react`, `@types/react-dom`, the explicit oxlint Windows binding) → removed.
 - Obsolete Phase 1 notes (local-state data reset on refresh, app not connected to Supabase / PWA, 4.5 ★ filter note on the 20 demo providers) → no longer apply.

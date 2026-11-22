@@ -5,6 +5,7 @@ import { listSentContactRequests } from '../../services/contactRequestsService'
 const sentWeddingDateFormatter = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
 import { TaskModal } from './TaskModal'
 import { Flourish } from '../ui/Flourish'
+import { Burst } from '../ui/Burst'
 
 const SUCCESS_TIMEOUT_MS = 4000
 
@@ -38,6 +39,7 @@ export function PlanningPage({ wedding, onNavigateToRequests }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [celebrateId, setCelebrateId] = useState(null)
   // Auto-dismiss the success toast (it previously relied on an animation that never ran).
   useEffect(() => {
     if (!success) return undefined
@@ -143,6 +145,10 @@ export function PlanningPage({ wedding, onNavigateToRequests }) {
       return
     }
     setSuccess('Le statut a été enregistré.')
+    if (status === 'done') {
+      setCelebrateId(task.id)
+      setTimeout(() => setCelebrateId((id) => (id === task.id ? null : id)), 900)
+    }
     await reload()
   }
 
@@ -272,7 +278,7 @@ export function PlanningPage({ wedding, onNavigateToRequests }) {
               <div className="task-list">
                 {selectedTasks.map((task) => (
                   <article className={`planner-task ${task.status === 'done' ? 'completed' : ''} ${isUrgent(task) ? 'urgent-task' : ''}`} key={task.id}>
-                    <button className="check-button" onClick={() => changeStatus(task, task.status === 'done' ? 'todo' : 'done')}>{task.status === 'done' ? '✓' : ''}</button>
+                    <button className="check-button" onClick={() => changeStatus(task, task.status === 'done' ? 'todo' : 'done')}>{task.status === 'done' ? '✓' : ''}{celebrateId === task.id && <Burst variant="confetti" />}</button>
                     <div className="planner-task-body">
                       <strong>{task.title}</strong>
                       {task.task_time && <small>{task.task_time}</small>}

@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { Burst } from '../ui/Burst'
 import { getCategoryImage } from '../../utils/categoryImages'
 import { formatRating, formatTndRange } from '../../utils/format'
 
@@ -55,19 +56,32 @@ export function ProviderCover({ provider, iconSize = 40, className = '' }) {
 
 // Heart toggle: aria-pressed + label reflect the state; disabled while a mutation is in flight.
 export function FavoriteButton({ providerName, isFavorite, pending, onToggle }) {
+  // Pop + particles only when the user adds a favorite (never on load or removal).
+  const [popping, setPopping] = useState(false)
+  const popTimer = useRef(null)
+  useEffect(() => () => clearTimeout(popTimer.current), [])
+  const handleClick = (event) => {
+    if (!isFavorite) {
+      setPopping(true)
+      clearTimeout(popTimer.current)
+      popTimer.current = setTimeout(() => setPopping(false), 700)
+    }
+    onToggle?.(event)
+  }
   return (
     <button
       type="button"
-      className={`favorite-button ${isFavorite ? 'active' : ''}`}
+      className={`favorite-button ${isFavorite ? 'active' : ''} ${popping ? 'is-popping' : ''}`.trim()}
       aria-pressed={isFavorite}
       aria-label={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
       title={`${isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'} : ${providerName}`}
       disabled={pending}
-      onClick={onToggle}
+      onClick={handleClick}
     >
       <svg width="18" height="18" viewBox="0 0 24 24" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <path d="M20.8 8.6c0 5.4-8.8 10.1-8.8 10.1S3.2 14 3.2 8.6A4.6 4.6 0 0 1 12 6.1a4.6 4.6 0 0 1 8.8 2.5Z" />
       </svg>
+      {popping && <Burst variant="hearts" />}
     </button>
   )
 }

@@ -104,7 +104,7 @@ h3 { font-size: 14px; margin-bottom: 0; }
 .task-list { display: grid; gap: 5px; }
 .task-row { display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #eee5de; padding: 10px 0; }
 .task-row:last-child { border-bottom: 0; }
-.check-button { display: grid; place-items: center; width: 18px; height: 18px; padding: 0; border: 1px solid #cdb5a5; color: white; border-radius: 4px; background: transparent; }
+.check-button { position: relative; display: grid; place-items: center; width: 18px; height: 18px; padding: 0; border: 1px solid #cdb5a5; color: white; border-radius: 4px; background: transparent; }
 .completed .check-button { background: var(--terracotta); border-color: var(--terracotta); }
 .task-icon { color: var(--terracotta); }
 .task-row div:last-child { display: grid; gap: 3px; }
@@ -501,4 +501,54 @@ h3 { font-size: 14px; margin-bottom: 0; }
   .planning-layout { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); }
   .calendar-card { padding: 20px 14px; }
   .weekdays, .calendar-grid { gap: 4px; }
+}
+
+/* ===== Lot 1 animations ===== */
+
+/* Signature flourish: the stroke draws itself like a pen */
+.flourish path { stroke-dasharray: 1; stroke-dashoffset: 0; animation: flourishDraw 1.3s cubic-bezier(.65, 0, .35, 1) both; }
+@keyframes flourishDraw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+.welcome-flourish path { animation-delay: .35s; }
+.welcome-slide:not(.is-active) .welcome-flourish path { animation: none; stroke-dashoffset: 1; }
+
+/* Ken Burns: slow zoom + drift on the welcome photos */
+.welcome-slide-image { position: absolute; inset: 0; background-size: cover; background-repeat: no-repeat; transform: scale(1.02); transform-origin: center; will-change: transform; }
+.welcome-slide.kb-run .welcome-slide-image { animation: kenBurns 7600ms ease-out forwards; }
+@keyframes kenBurns { from { transform: scale(1.02) translate3d(0, 0, 0); } to { transform: scale(1.1) translate3d(var(--kb-x, 0), var(--kb-y, 0), 0); } }
+
+/* Dashboard: cards rise one after another */
+.dash-enter { animation: dashRise 520ms cubic-bezier(.2, .7, .2, 1) both; animation-delay: calc(var(--i, 0) * 70ms); }
+@keyframes dashRise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+/* Countdown digits roll in when they change */
+.rolling-number { display: inline-block; overflow: hidden; vertical-align: bottom; line-height: 1.15; }
+/* the countdown labels rule (.countdown span) must not shrink the digits */
+.countdown .rolling-number, .countdown .rolling-number-value { font-size: inherit; color: inherit; }
+.rolling-number-value { display: inline-block; animation: rollIn 480ms cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes rollIn { from { transform: translateY(-70%); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* Preparation bar fills from 0 */
+.progress .progress-fill { width: 100%; transform-origin: left center; transition: transform 800ms ease-out; }
+
+/* Ticked task leaves the dashboard list */
+.task-row.is-leaving { animation: taskLeave 340ms ease-in 200ms forwards; }
+@keyframes taskLeave { to { opacity: 0; transform: translateX(24px); } }
+
+/* Particle bursts (confetti / hearts) */
+.burst { position: absolute; left: 50%; top: 50%; width: 0; height: 0; pointer-events: none; z-index: 3; }
+.burst i { position: absolute; left: 0; top: 0; width: 6px; height: 6px; margin: -3px 0 0 -3px; background: var(--c); border-radius: 1px; opacity: 0; animation: burstFly 700ms cubic-bezier(.15, .75, .35, 1) forwards; }
+.burst-confetti i { width: 5px; height: 8px; margin: -4px 0 0 -2.5px; }
+.burst-hearts i { width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 50%; }
+@keyframes burstFly { 0% { opacity: 1; transform: translate(0, 0) rotate(0) scale(.6); } 70% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--x), var(--y)) rotate(var(--r)) scale(1); } }
+
+/* Favorite heart pop */
+.favorite-button.is-popping svg { animation: heartPop 480ms cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes heartPop { 0% { transform: scale(1); } 30% { transform: scale(.7); } 60% { transform: scale(1.35); } 100% { transform: scale(1); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .flourish path, .welcome-slide:not(.is-active) .welcome-flourish path { animation: none; stroke-dashoffset: 0; }
+  .welcome-slide-image, .welcome-slide.kb-run .welcome-slide-image { animation: none; }
+  .dash-enter, .rolling-number-value, .task-row.is-leaving, .favorite-button.is-popping svg { animation: none; }
+  .progress .progress-fill { transition: none; }
+  .burst { display: none; }
 }

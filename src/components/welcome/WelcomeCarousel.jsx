@@ -6,11 +6,11 @@ const BASE = import.meta.env.BASE_URL
 
 // position: horizontal focus point so the subject stays visible when a portrait screen crops the 16:9 photo
 const SLIDES = [
-  { image: `${BASE}images/welcome/slide-1.webp`, position: '35% 50%', slogan: 'Votre mariage, votre signature.' },
-  { image: `${BASE}images/welcome/slide-2.webp`, position: '58% 50%', slogan: 'L’élégance dans chaque détail.' },
-  { image: `${BASE}images/welcome/slide-3.webp`, position: '35% 50%', slogan: 'Des souvenirs qui vous ressemblent.' },
-  { image: `${BASE}images/welcome/slide-4.webp`, position: '50% 50%', slogan: 'L’art de célébrer l’amour.' },
-  { image: `${BASE}images/welcome/slide-5.webp`, position: '30% 50%', slogan: 'Votre histoire commence ici.' },
+  { image: `${BASE}images/welcome/slide-1.webp`, position: '35% 50%', kb: ['-2%', '-1.5%'], slogan: 'Votre mariage, votre signature.' },
+  { image: `${BASE}images/welcome/slide-2.webp`, position: '58% 50%', kb: ['2%', '1%'], slogan: 'L’élégance dans chaque détail.' },
+  { image: `${BASE}images/welcome/slide-3.webp`, position: '35% 50%', kb: ['-1.5%', '1.5%'], slogan: 'Des souvenirs qui vous ressemblent.' },
+  { image: `${BASE}images/welcome/slide-4.webp`, position: '50% 50%', kb: ['0%', '-2%'], slogan: 'L’art de célébrer l’amour.' },
+  { image: `${BASE}images/welcome/slide-5.webp`, position: '30% 50%', kb: ['2%', '-1%'], slogan: 'Votre histoire commence ici.' },
 ]
 
 const ROTATE_MS = 6000
@@ -31,7 +31,9 @@ function usePrefersReducedMotion() {
 }
 
 export function WelcomeCarousel({ children }) {
-  const [current, setCurrent] = useState(0)
+  // prev = the slide fading out, so its slow zoom keeps running during the cross-fade
+  const [slide, setSlide] = useState({ current: 0, prev: null })
+  const current = slide.current
   const [paused, setPaused] = useState(false)
   const reducedMotion = usePrefersReducedMotion()
   const pauseTimer = useRef(null)
@@ -41,7 +43,7 @@ export function WelcomeCarousel({ children }) {
   // Auto-rotate unless paused or the user prefers reduced motion
   useEffect(() => {
     if (paused || reducedMotion) return undefined
-    const id = setInterval(() => setCurrent((c) => (c + 1) % count), ROTATE_MS)
+    const id = setInterval(() => setSlide((s) => ({ current: (s.current + 1) % count, prev: s.current })), ROTATE_MS)
     return () => clearInterval(id)
   }, [paused, reducedMotion, count])
 
@@ -61,7 +63,11 @@ export function WelcomeCarousel({ children }) {
     pauseTimer.current = setTimeout(() => setPaused(false), PAUSE_MS)
   }, [])
 
-  const goTo = useCallback((index) => { setCurrent(((index % count) + count) % count); pause() }, [count, pause])
+  const goTo = useCallback((index) => {
+    const target = ((index % count) + count) % count
+    setSlide((s) => (s.current === target ? s : { current: target, prev: s.current }))
+    pause()
+  }, [count, pause])
   const next = () => goTo(current + 1)
   const prev = () => goTo(current - 1)
 
@@ -90,20 +96,20 @@ export function WelcomeCarousel({ children }) {
       data-current={current}
       data-paused={paused || reducedMotion ? 'true' : 'false'}
     >
-      {SLIDES.map((slide, i) => (
+      {SLIDES.map((item, i) => (
         <div
-          key={slide.image}
-          className={`welcome-slide ${i === current ? 'is-active' : ''}`.trim()}
+          key={item.image}
+          className={`welcome-slide ${i === current ? 'is-active' : ''} ${i === current || i === slide.prev ? 'kb-run' : ''}`.replace(/\s+/g, ' ').trim()}
           role="group"
           aria-roledescription="slide"
           aria-label={`${i + 1} sur ${count}`}
           aria-hidden={i !== current}
-          style={{ backgroundImage: `url(${slide.image})`, backgroundPosition: slide.position }}
         >
+          <div className="welcome-slide-image" style={{ backgroundImage: `url(${item.image})`, backgroundPosition: item.position, '--kb-x': item.kb[0], '--kb-y': item.kb[1] }} />
           <div className="welcome-slide-overlay" />
           <div className="welcome-slide-content">
             <Wordmark size="lg" />
-            <p className="welcome-slogan">{slide.slogan}</p>
+            <p className="welcome-slogan">{item.slogan}</p>
             <Flourish className="welcome-flourish" />
           </div>
         </div>

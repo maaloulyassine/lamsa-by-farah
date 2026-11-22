@@ -231,7 +231,8 @@ The MVP is deployed and publicly accessible.
 
 - 5a (French auth errors): complete. 5b (GitHub Actions node24 runtime, Node 22.12 build): complete.
 - 5c (grants cleanup): migration `20261122000008_phase5c_grants_cleanup.sql` revokes TRUNCATE from `anon`/`authenticated` on every public table and grants `service_role` SELECT/INSERT/UPDATE/DELETE on all public tables (+ sequences, + EXECUTE on `set_wedding_plan(uuid)`). Applied locally and on the cloud. Reversal restores the recorded pre-5c cloud privileges. `anon`/`authenticated` still hold REFERENCES and TRIGGER from the project defaults (not usable through PostgREST; not in scope).
-- 5d (README) and 5e (known issues + final tag): pending.
+- 5d (README): complete — README rewritten for portfolio and handoff (features, stack, architecture, local setup, deployment incl. seed command and GRANT quirk, PWA install, design system, admin, provider data, testing, limitations, license).
+- 5e (known issues + final tag): pending.
 
 - Run focused functional, responsive, accessibility, security, and RLS validation.
 - Test Android Chrome and iPhone Safari when available.

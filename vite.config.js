@@ -45,6 +45,9 @@ function pwaBuildPlugin(base) {
         `${base}fonts/dm-sans-latin.woff2`,
         `${base}fonts/playfair-display-latin-normal.woff2`,
         `${base}fonts/playfair-display-latin-italic.woff2`,
+        `${base}fonts/italiana-400.woff2`,
+        `${base}fonts/cormorant-garamond-400.woff2`,
+        `${base}fonts/cormorant-garamond-400-italic.woff2`,
       ])
 
       const walk = (directory) => {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { isSupabaseConfigured, supabase } from '../services/supabaseClient'
 import { useAuth } from '../context/useAuth'
+import { Wordmark } from '../components/ui/Wordmark'
 
 export function WeddingSetup() {
   const { user, profile, refreshWedding, signOut } = useAuth()
@@ -61,7 +62,7 @@ export function WeddingSetup() {
   return (
     <main className="auth-screen setup-screen">
       <section className="auth-card setup-card">
-        <div className="brand brand-auth"><span className="brand-mark">♡</span><span>LAMSA <em>by Farah</em></span></div>
+        <div className="brand brand-auth"><Wordmark size="md" /></div>
         <p className="eyebrow">Premier accès</p>
         <h1>Votre projet de mariage</h1>
         <p className="auth-intro">Renseignez les informations essentielles. Vous pourrez les modifier ensuite.</p>

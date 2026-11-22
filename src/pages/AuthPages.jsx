@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '../context/useAuth'
 import { translateAuthError } from '../utils/authErrors'
+import { Wordmark } from '../components/ui/Wordmark'
 
 export function AuthScreen({ initialMode = 'signin', onBack, expired = false }) {
   const { signIn, signUp } = useAuth()
@@ -43,7 +44,7 @@ export function AuthScreen({ initialMode = 'signin', onBack, expired = false }) 
     <main className="auth-screen">
       <section className="auth-card">
         <button className="auth-back" onClick={onBack}>← Retour</button>
-        <div className="brand brand-auth"><span className="brand-mark">♡</span><span>LAMSA <em>by Farah</em></span></div>
+        <div className="brand brand-auth"><Wordmark size="md" /></div>
         <h1>{mode === 'signup' ? 'Créer votre compte' : 'Bienvenue'}</h1>
         <p className="auth-intro">{mode === 'signup' ? 'Commencez à organiser votre mariage.' : 'Retrouvez votre espace mariage.'}</p>
         {expired && <p className="auth-message error">Votre session a expiré. Veuillez vous reconnecter.</p>}

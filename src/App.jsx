@@ -11,6 +11,7 @@ import { FavoritesPage } from './components/favorites/FavoritesPage'
 import { MyRequestsPage } from './components/contact/MyRequestsPage'
 import { AdminRequestsPage } from './components/admin/AdminRequestsPage'
 import { formatTnd } from './utils/format'
+import { Flourish, Wordmark } from './components/ui/Wordmark'
 
 const categories = [
   ['Salle de mariage', 'building', 'Salles de mariage'],
@@ -76,7 +77,7 @@ function App() {
   return (
     <div className="app-shell">
       <aside className={`side-panel ${menuOpen ? 'is-open' : ''}`}>
-        <div className="brand brand-sidebar"><span className="brand-mark">♡</span><span>LAMSA <em>by Farah</em></span></div>
+        <div className="brand brand-sidebar"><Wordmark size="md" /></div>
         <nav className="side-nav">
           <NavItem icon="home" label="Accueil" active={activePage === 'home'} onClick={() => { setActivePage('home'); setMenuOpen(false) }} />
           <NavItem icon="heart" label="Mes favoris" active={activePage === 'favorites'} onClick={() => { setActivePage('favorites'); setMenuOpen(false) }} />
@@ -89,7 +90,7 @@ function App() {
       <div className="main-column">
         <header className="topbar">
           <button className="mobile-menu" onClick={() => setMenuOpen((open) => !open)} aria-label="Ouvrir le menu">☰</button>
-          <div className="brand brand-mobile"><span className="brand-mark">♡</span><span>LAMSA <em>by Farah</em></span></div>
+          <div className="brand brand-mobile"><Wordmark size="sm" /></div>
           <div className="topbar-actions"><button className="icon-button notification" aria-label="Notifications"><Icon name="bell" size={19} /><i /></button><button className="avatar" onClick={() => setActivePage('profile')}>F</button></div>
         </header>
         <main className="page-content">
@@ -108,7 +109,7 @@ function App() {
 }
 
 function Welcome({ onStart, onSignIn }) {
-  return <div className="welcome-screen"><div className="welcome-art" /><div className="welcome-card"><div className="brand brand-welcome"><span className="brand-mark">♡</span><span>LAMSA <em>by Farah</em></span></div><p className="welcome-tagline">Votre mariage,<br /><strong>votre signature.</strong></p><div className="welcome-rule">♡</div><button className="primary-button welcome-button" onClick={onStart}>Commencer <Icon name="arrow" size={17} /></button><button className="welcome-signin" onClick={onSignIn}>J’ai déjà un compte</button><p className="welcome-note">Votre assistant pour un mariage inoubliable</p></div></div>
+  return <div className="welcome-screen"><div className="welcome-art" /><div className="welcome-card"><div className="brand brand-welcome"><Wordmark size="lg" /></div><p className="slogan">Votre mariage, votre signature.</p><Flourish className="slogan-flourish" /><button className="primary-button welcome-button" onClick={onStart}>Commencer <Icon name="arrow" size={17} /></button><button className="welcome-signin" onClick={onSignIn}>J’ai déjà un compte</button><p className="welcome-note">Votre assistant pour un mariage inoubliable</p></div></div>
 }
 
 function NavItem({ icon, label, active, onClick }) {

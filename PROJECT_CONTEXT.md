@@ -39,7 +39,7 @@ The complete approved product and technical specification is in [`Lamsa_by_Farah
 The mockup establishes a premium, romantic, feminine visual language:
 
 - Palette: ivory, cream, blush beige, champagne, taupe, soft brown, and terracotta accents.
-- Typography: Playfair Display for editorial headings and DM Sans for readable interface text.
+- Typography: Playfair Display for editorial headings and DM Sans for readable interface text. Since Phase 7a the wordmark uses Italiana ("Lamsa") + Cormorant Garamond italic ("by Farah") with a thin terracotta flourish, and the Welcome slogan uses Cormorant Garamond italic. All fonts are self-hosted WOFF2 (latin subset) in `public/fonts/`.
 - Components: rounded cards, subtle borders and shadows, generous spacing, soft image treatments, visible focus/active states.
 - Layout: mobile-first, responsive, with an elegant welcome screen and compact bottom-navigation-inspired interaction model.
 - The mockup’s iOS status-bar elements are reference imagery only and are not application UI.
@@ -220,6 +220,11 @@ The MVP is deployed and publicly accessible.
 - `public/images/categories/<slug>.webp`: 10 Unsplash illustrations (one per category, ≤ 100 KB each, 720 KB total), mapped by `src/utils/categoryImages.js` with Vite's `BASE_URL` prefix.
 - `ProviderCover`: provider `cover_image_url` first, then the category illustration with a "Photo d'illustration" badge and the category icon (badge shown only once the image has loaded), then the gradient placeholder if the image is missing or fails.
 - Images are same-origin static assets outside the service-worker precache (network-only); `lamsa-v1` still holds 13 entries. No migration or seed change.
+
+### Phase 7 — Design refresh — in progress
+
+- 7a (typography + wordmark): `src/components/ui/Wordmark.jsx` (`Wordmark` sizes lg/md/sm + reusable `Flourish` SVG) replaces the old "♡ LAMSA by Farah" brand on Welcome (lg), sidebar (md), mobile top bar (sm, ≤ 650 px — the app has no bottom nav), login/sign-up and wedding setup (md). Welcome slogan on one line in Cormorant Garamond italic with a flourish below (replaces the ♡ rule). New token `--ink-soft`. Fonts Italiana 400, Cormorant Garamond 400 normal + italic added to the service-worker precache (`lamsa-v1`: 16 entries).
+- 7b (welcome carousel) and 7c (micro-interactions / polish): pending.
 
 ### Phase 5 — Quality and delivery
 

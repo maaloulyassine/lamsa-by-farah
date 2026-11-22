@@ -20,6 +20,8 @@ import { NotificationsBell } from './components/notifications/NotificationsBell'
 import { EditProjectPage } from './components/profile/EditProjectPage'
 import { EditProfilePage } from './components/profile/EditProfilePage'
 import { historyFlag, navigate, useRoute } from './utils/router'
+import { Monogram } from './components/ui/Monogram'
+import { DashboardGreeting } from './components/dashboard/DashboardGreeting'
 import { runViewTransition } from './utils/viewTransition'
 import { WelcomeCarousel } from './components/welcome/WelcomeCarousel'
 
@@ -143,7 +145,7 @@ function App() {
         <header className="topbar">
           <button className="mobile-menu" onClick={() => setMenuOpen((open) => !open)} aria-label="Ouvrir le menu">☰</button>
           <div className="brand brand-mobile"><Wordmark size="sm" /></div>
-          <div className="topbar-actions"><button className="icon-button theme-toggle" onClick={toggleTheme} aria-label={theme === 'soiree' ? 'Passer au mode clair' : 'Passer au mode soirée'} title={theme === 'soiree' ? 'Mode clair' : 'Mode soirée'}><Icon name={theme === 'soiree' ? 'sun' : 'moon'} size={19} /></button><NotificationsBell wedding={wedding} userId={user?.id} refreshKey={activePage} onNavigate={(page) => { setActivePage(page); setMenuOpen(false) }} /><button className="avatar" onClick={() => setActivePage('profile')}>F</button></div>
+          <div className="topbar-actions"><button className="icon-button theme-toggle" onClick={toggleTheme} aria-label={theme === 'soiree' ? 'Passer au mode clair' : 'Passer au mode soirée'} title={theme === 'soiree' ? 'Mode clair' : 'Mode soirée'}><Icon name={theme === 'soiree' ? 'sun' : 'moon'} size={19} /></button><NotificationsBell wedding={wedding} userId={user?.id} refreshKey={activePage} onNavigate={(page) => { setActivePage(page); setMenuOpen(false) }} /><button className="avatar" onClick={() => setActivePage('profile')} aria-label={`Mon profil — ${wedding?.couple_name || profile?.full_name || ''}`.replace(/ — $/, '')}><Monogram name={wedding?.couple_name} fallback={profile?.full_name} /></button></div>
         </header>
         <main className="page-content">
           {activePage === 'home' && <Dashboard setActivePage={setActivePage} wedding={wedding} profile={profile} />}
@@ -245,19 +247,17 @@ function Dashboard({ setActivePage, wedding, profile }) {
   const cdMinutes = Math.floor((remainingMs % 3_600_000) / 60_000)
   const doneCount = tasks.filter((task) => task.status === 'done').length
   const preparation = tasks.length ? Math.round((doneCount / tasks.length) * 100) : 0
-  const greetingName = profile?.full_name?.trim() || 'vous'
   const weddingDate = wedding?.wedding_date ? new Date(`${wedding.wedding_date}T12:00:00`) : null
   const weddingDateLabel = weddingDate
     ? weddingDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
     : 'Date à définir'
-  const initials = greetingName[0]?.toUpperCase() || 'F'
 
   useEffect(() => {
     let inner = 0
     const outer = requestAnimationFrame(() => { inner = requestAnimationFrame(() => setBarPercent(preparation)) })
     return () => { cancelAnimationFrame(outer); cancelAnimationFrame(inner) }
   }, [preparation])
-  return <><PageTitle eyebrow={new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(dashboardNow)} title={<>Bonjour {greetingName} <span className="wave">👋</span></>} action={<button className="profile-chip" onClick={() => setActivePage('profile')}><span>{initials}</span><b>{greetingName.split(' ')[0]}</b><Icon name="chevron" size={14} /></button>} /><p className="intro-copy">Prête à organiser le plus beau jour de votre vie ?</p>
+  return <><DashboardGreeting now={dashboardNow} coupleName={wedding?.couple_name} fallbackName={profile?.full_name} weddingDateIso={wedding?.wedding_date} weddingDateLabel={weddingDateLabel} daysLeft={countdownTarget ? cdDays : null} onOpenProfile={() => setActivePage('profile')} />
     {success && <p className="success-banner" role="status">{success}</p>}
     {toggleError && <div className="error-banner" role="alert"><span>{toggleError}</span><button onClick={() => setToggleError('')} aria-label="Fermer">×</button></div>}
     <section className="hero-card dash-enter" style={{ '--i': 1 }}><div className="hero-image" /><div className="hero-overlay"><span className="pill light">Votre espace mariage</span><h2>Rêvez grand.<br /><em>On s’occupe du reste.</em></h2><button className="ghost-button" onClick={() => setActivePage('services')}>Découvrir les services <Icon name="arrow" size={15} /></button></div></section>
@@ -275,7 +275,6 @@ function Profile({ setActivePage }) {
   const { signOut, profile, user, wedding } = useAuth()
   const isAdmin = user?.app_metadata?.is_admin === true
   const theme = useTheme()
-  const initial = profile?.full_name?.trim()?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'F'
   const weddingDate = wedding?.wedding_date
     ? new Date(`${wedding.wedding_date}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
     : 'Projet à compléter'
@@ -289,7 +288,7 @@ function Profile({ setActivePage }) {
     // Former inactive « Paramètres » item: now the evening-theme switch.
     { icon: theme === 'soiree' ? 'sun' : 'moon', label: 'Mode soirée', meta: theme === 'soiree' ? 'Activé · thème sombre et doré' : 'Désactivé · thème clair', onSelect: toggleTheme, switchOn: theme === 'soiree' },
   ]
-  return <><PageTitle eyebrow="Votre espace personnel" title="Mon profil" /><section className="profile-header content-card"><div className="large-avatar">{initial}</div><div><h2>{profile?.full_name || 'Votre profil'}</h2><p>{user?.email}</p><button className="text-button" onClick={() => setActivePage('edit-profile')}>Modifier mon profil <Icon name="arrow" size={14} /></button></div></section><div className="profile-menu content-card">{menuItems.map(({ icon, label, meta, page, onSelect, switchOn }) => <button key={label} onClick={() => { if (onSelect) onSelect(); else if (page) setActivePage(page) }} {...(switchOn === undefined ? {} : { role: 'switch', 'aria-checked': switchOn, className: 'theme-switch-row' })}><span className="profile-menu-icon"><Icon name={icon} size={19} /></span><span><strong>{label}</strong><small>{meta}</small></span>{switchOn === undefined ? <Icon name="chevron" size={17} /> : <span className={`theme-switch ${switchOn ? 'is-on' : ''}`} aria-hidden="true" />}</button>)}</div><button className="logout-button" onClick={signOut}>Se déconnecter</button></>
+  return <><PageTitle eyebrow="Votre espace personnel" title="Mon profil" /><section className="profile-header content-card"><div className="large-avatar"><Monogram name={wedding?.couple_name} fallback={profile?.full_name || user?.email} /></div><div><h2>{profile?.full_name || 'Votre profil'}</h2><p>{user?.email}</p><button className="text-button" onClick={() => setActivePage('edit-profile')}>Modifier mon profil <Icon name="arrow" size={14} /></button></div></section><div className="profile-menu content-card">{menuItems.map(({ icon, label, meta, page, onSelect, switchOn }) => <button key={label} onClick={() => { if (onSelect) onSelect(); else if (page) setActivePage(page) }} {...(switchOn === undefined ? {} : { role: 'switch', 'aria-checked': switchOn, className: 'theme-switch-row' })}><span className="profile-menu-icon"><Icon name={icon} size={19} /></span><span><strong>{label}</strong><small>{meta}</small></span>{switchOn === undefined ? <Icon name="chevron" size={17} /> : <span className={`theme-switch ${switchOn ? 'is-on' : ''}`} aria-hidden="true" />}</button>)}</div><button className="logout-button" onClick={signOut}>Se déconnecter</button></>
 }
 
 export default App

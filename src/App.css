@@ -717,3 +717,59 @@ h3 { font-size: 14px; margin-bottom: 0; }
 .field-hint { margin-top: -6px; color: var(--muted); font-size: 11px; }
 [data-theme="soiree"] .project-notice { background: rgba(255, 240, 225, .05); }
 [data-theme="soiree"] .task-form input[readonly] { background: transparent; }
+
+/* ===== Greeting « faire-part vivant » + couple monogram ===== */
+.monogram { font-family: 'Italiana', serif; font-weight: 400; letter-spacing: .02em; line-height: 1; white-space: nowrap; }
+.monogram-amp { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: .82em; margin: 0 .04em; opacity: .9; }
+.avatar { display: grid; place-items: center; background: linear-gradient(145deg, #d9b796, #b88a63); box-shadow: 0 0 0 2px var(--canvas), 0 0 0 3px var(--champagne); }
+.avatar .monogram { font-size: 16px; }
+.avatar .monogram.is-pair { font-size: 13px; }
+.large-avatar { display: grid; place-items: center; background: linear-gradient(145deg, #d9b796, #b88a63); box-shadow: 0 0 0 3px var(--cream), 0 0 0 4.5px var(--champagne), var(--shadow-md); }
+.large-avatar .monogram { font-size: 30px; }
+.large-avatar .monogram.is-pair { font-size: 24px; }
+
+.greeting { position: relative; isolation: isolate; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "head seal" "names seal" "flourish seal" "line seal"; align-items: center; column-gap: 28px; margin: 4px 0 30px; }
+.greeting::before { content: '&'; position: absolute; z-index: -1; right: 150px; top: -70px; font: italic 400 280px/1 'Cormorant Garamond', serif; color: var(--terracotta); opacity: .07; pointer-events: none; }
+.greeting-head { grid-area: head; }
+.greeting-eyebrow { display: flex; align-items: center; gap: 8px; margin: 0; }
+.greeting-eyebrow::before { content: ''; width: 14px; height: 14px; flex: 0 0 auto; background: var(--ornament-jasmine) center / contain no-repeat; opacity: .8; }
+.greeting-salutation { margin: 10px 0 0; font: italic 400 26px/1.1 'Cormorant Garamond', serif; color: var(--ink-soft); }
+.greeting-names { grid-area: names; margin: 4px 0 0; font: 400 clamp(40px, 5.4vw, 66px)/1.06 'Italiana', serif; letter-spacing: .015em; color: var(--ink); }
+.greet-word { display: inline-block; white-space: nowrap; }
+.greet-letter { display: inline-block; animation: greetLetter 760ms cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--d, 0) * 38ms + 120ms); }
+@keyframes greetLetter { from { opacity: 0; transform: translateY(.38em); filter: blur(5px); } }
+.greet-amp { display: inline-block; margin: 0 .06em 0 .02em; padding: 0 .1em; font: italic 400 1.42em/1 'Cormorant Garamond', serif; vertical-align: -.16em; background: linear-gradient(135deg, var(--champagne) 10%, var(--terracotta) 90%); -webkit-background-clip: text; background-clip: text; color: transparent; animation: greetAmp 1100ms cubic-bezier(.2, .8, .2, 1) both 420ms; }
+@keyframes greetAmp { from { opacity: 0; transform: scale(.55) rotate(-14deg); } }
+.greeting-flourish { grid-area: flourish; width: 7.5rem; height: .7rem; margin-top: .6rem; animation-delay: .9s; }
+.greeting-flourish path { animation-delay: .9s; }
+.greeting-line { grid-area: line; margin: 12px 0 0; font: italic 400 20px/1.35 'Cormorant Garamond', serif; color: var(--ink-soft); }
+.greeting-count { font: normal 400 30px/1 'Italiana', serif; color: var(--terracotta-text); letter-spacing: .02em; }
+.greeting-star { color: var(--champagne); font-style: normal; }
+.greeting-seal { grid-area: seal; position: relative; width: 118px; height: 118px; padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: pointer; transition: transform 300ms ease; }
+.greeting-seal:hover { transform: scale(1.04); }
+.seal-ring { position: absolute; inset: 0; width: 100%; height: 100%; animation: sealSpin 42s linear infinite; }
+.seal-ring text { fill: var(--terracotta-text); font: 600 8.6px 'DM Sans', sans-serif; letter-spacing: .5px; }
+@keyframes sealSpin { to { transform: rotate(360deg); } }
+.seal-core { position: absolute; inset: 24px; display: grid; place-items: center; border-radius: 50%; color: #fff; background: radial-gradient(circle at 32% 28%, #e6c8a4 0%, #c39468 55%, #a8764f 100%); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .35), inset 0 -6px 12px rgba(80, 45, 25, .25), var(--shadow-md); }
+.seal-core .monogram { font-size: 25px; text-shadow: 0 1px 2px rgba(60, 35, 20, .35); }
+.seal-core .monogram.is-pair { font-size: 21px; }
+[data-theme="soiree"] .avatar, [data-theme="soiree"] .large-avatar { background: linear-gradient(145deg, #c9a061, #8a6a42); color: #1b1411; }
+[data-theme="soiree"] .seal-core { background: radial-gradient(circle at 32% 28%, #f0d29d 0%, #c9a061 55%, #8f6a3a 100%); color: #1b1411; }
+[data-theme="soiree"] .seal-core .monogram { text-shadow: 0 1px 1px rgba(255, 240, 210, .4); }
+[data-theme="soiree"] .greeting::before { color: var(--champagne); opacity: .08; }
+@media (max-width: 650px) {
+  .greeting { grid-template-areas: "head seal" "names names" "flourish flourish" "line line"; column-gap: 12px; margin-bottom: 22px; }
+  .greeting::before { right: 4px; top: -30px; font-size: 190px; }
+  .greeting-salutation { font-size: 23px; }
+  .greeting-names { font-size: clamp(36px, 11vw, 48px); margin-top: 10px; }
+  .greeting-line { font-size: 18px; }
+  .greeting-count { font-size: 26px; }
+  .greeting-seal { width: 84px; height: 84px; align-self: start; }
+  .seal-core { inset: 17px; }
+  .seal-core .monogram { font-size: 19px; } .seal-core .monogram.is-pair { font-size: 16px; }
+  .seal-ring text { font-size: 9.4px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .greet-letter, .greet-amp, .seal-ring { animation: none; }
+  .greeting-seal { transition: none; }
+}

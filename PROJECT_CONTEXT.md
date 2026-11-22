@@ -234,6 +234,12 @@ The MVP is deployed and publicly accessible.
 - Celebrations (`Burst`): heart pop + 8 particles when a favorite is added (not on removal or load); 12-piece confetti when a task is ticked done on the Dashboard (the row then slides out) and in Planning.
 - Everything is disabled under `prefers-reduced-motion`. No new dependency, no database or service-worker change.
 
+### Design lot 2 (v1.5.0) — complete
+
+- 2a Tunisian-inspired patterns: original SVG drawings (zellige star tile, double star, jasmine) as CSS custom properties, behind content at low opacity — sidebar, auth / setup background, countdown-card corner, empty states, jasmine above the sidebar slogan.
+- 2b Card → provider detail morph with the View Transitions API (`src/utils/viewTransition.js`), Services and Favoris, instant fallback (unsupported browsers, reduced motion); `ProviderDetail` shows the card's cover (`preview`) while loading.
+- 2c Evening theme « soirée » (dark & gold): every colour override is scoped to `:root[data-theme="soiree"]` (light mode untouched); toggle in the top bar and as the « Mode soirée » switch in Profil (replaces the inactive « Paramètres »); choice stored in `localStorage` (`lamsa-theme`), applied by an inline script in `index.html` before first paint, `theme-color` updated; cross-fade via View Transition. `src/utils/theme.js` (`useTheme`, `toggleTheme`).
+
 ### Phase 5 — Quality and delivery
 
 - 5a (French auth errors): complete. 5b (GitHub Actions node24 runtime, Node 22.12 build): complete.
@@ -265,7 +271,7 @@ The MVP is deployed and publicly accessible.
 - **Price and rating filters hidden** — real pricing and review data has not been collected yet. The schema already supports them (`price_from`, `price_to`, `rating`, `review_count`); they will be re-enabled when real data exists.
 - **Partial coverage** — providers in 5 main governorates (Sousse 49, Monastir 42, Tunis 36, Bizerte 32, Nabeul 28) plus 2 in Ariana; the remaining 18 of 24 governorates are not covered yet. More providers can be added with the same seed pattern.
 - **Dashboard quick-tile categories are hardcoded** Phase 1 tuples in `App.jsx` (cosmetic).
-- **3 inactive Profile buttons** — « Mon projet de mariage », « Paramètres » and the header link « Modifier mon profil » have no screen yet (spec §11 « Aucun bouton principal inactif » is partially violated). Either implement the screens or remove the items.
+- **2 inactive Profile buttons** — « Mon projet de mariage » and the header link « Modifier mon profil » have no screen yet (spec §11 « Aucun bouton principal inactif » is partially violated). « Paramètres » became the « Mode soirée » switch in v1.5.0.
 - **Dashboard budget summary card** (spec §4.3) — deferred; the budget is only shown on Mon budget.
 - **Favorite button double announcement** — the heart changes both `aria-pressed` and its `aria-label` (« Ajouter aux favoris » / « Retirer des favoris »); some screen readers announce the state twice. A fixed label with `aria-pressed` only would be cleaner.
 - **Native `window.confirm` for deletions** (tasks, expenses) — to be replaced by a styled confirmation modal.
@@ -276,6 +282,7 @@ The MVP is deployed and publicly accessible.
 - **Availability filter not implemented** — `providers.availability_notes` is free text and cannot reliably answer « disponible à la date du mariage ? »; inventing structured availability would break the specification's demonstration rules (§8). Deferred until a structured availability field exists.
 - **Raw technical messages outside the auth forms** — `AuthContext` can show the browser's « TypeError: Failed to fetch » after an offline reload, and the space-loading and wedding-setup errors can show raw Supabase messages (auth form errors were translated in 5a).
 - **Budget taxonomy reuses the 10 provider categories** — items such as invitations, jewellery or honeymoon must be logged under an existing category with a note.
+- **Light-mode text contrast** — the v1.5.0 contrast audit flags a few pale texts on cream in the light theme (e.g. `--faint` hints, small muted captions); pre-existing, not changed by the evening theme.
 - **The flower icon is used for 3 categories** (`coiffure-maquillage`, `decoration`, `fleurs`) — cosmetic.
 
 ### Technical decisions (working as intended)

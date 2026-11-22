@@ -15,6 +15,7 @@ import { Wordmark } from './components/ui/Wordmark'
 import { Flourish } from './components/ui/Flourish'
 import { Burst } from './components/ui/Burst'
 import { RollingNumber } from './components/ui/RollingNumber'
+import { toggleTheme, useTheme } from './utils/theme'
 import { WelcomeCarousel } from './components/welcome/WelcomeCarousel'
 
 const categories = [
@@ -53,6 +54,8 @@ function Icon({ name, size = 20 }) {
     mail: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3.5 6.5 8.5 6.5 8.5-6.5" /></>,
     clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
     map: <><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Z" /><path d="M9 3v15M15 6v15" /></>,
+    moon: <path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11Z" />,
+    sun: <><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></>,
   }
   return <svg className="icon" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">{paths[name] || paths.check}</svg>
 }
@@ -64,6 +67,7 @@ function App() {
   const [authMode, setAuthMode] = useState(null)
   const [activePage, setActivePage] = useState('home')
   const [menuOpen, setMenuOpen] = useState(false)
+  const theme = useTheme()
 
 
   if (!user && (authMode || sessionExpired)) {
@@ -95,7 +99,7 @@ function App() {
         <header className="topbar">
           <button className="mobile-menu" onClick={() => setMenuOpen((open) => !open)} aria-label="Ouvrir le menu">☰</button>
           <div className="brand brand-mobile"><Wordmark size="sm" /></div>
-          <div className="topbar-actions"><button className="icon-button notification" aria-label="Notifications"><Icon name="bell" size={19} /><i /></button><button className="avatar" onClick={() => setActivePage('profile')}>F</button></div>
+          <div className="topbar-actions"><button className="icon-button theme-toggle" onClick={toggleTheme} aria-label={theme === 'soiree' ? 'Passer au mode clair' : 'Passer au mode soirée'} title={theme === 'soiree' ? 'Mode clair' : 'Mode soirée'}><Icon name={theme === 'soiree' ? 'sun' : 'moon'} size={19} /></button><button className="icon-button notification" aria-label="Notifications"><Icon name="bell" size={19} /><i /></button><button className="avatar" onClick={() => setActivePage('profile')}>F</button></div>
         </header>
         <main className="page-content">
           {activePage === 'home' && <Dashboard setActivePage={setActivePage} wedding={wedding} profile={profile} />}
@@ -224,6 +228,7 @@ function TaskRow({ task, onToggle, disabled = false, leaving = false }) {
 function Profile({ setActivePage }) {
   const { signOut, profile, user, wedding } = useAuth()
   const isAdmin = user?.app_metadata?.is_admin === true
+  const theme = useTheme()
   const initial = profile?.full_name?.trim()?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'F'
   const weddingDate = wedding?.wedding_date
     ? new Date(`${wedding.wedding_date}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -235,9 +240,10 @@ function Profile({ setActivePage }) {
     { icon: 'heart', label: 'Mes services favoris', meta: 'Vos prestataires enregistrés', page: 'favorites' },
     { icon: 'mail', label: 'Mes demandes de contact', meta: 'Suivi de vos demandes aux prestataires', page: 'requests' },
     ...(isAdmin ? [{ icon: 'shield', label: 'Admin — Demandes', meta: 'Bonus post-MVP · toutes les demandes', page: 'admin-requests' }] : []),
-    { icon: 'user', label: 'Paramètres', meta: 'Préférences et sécurité', page: null },
+    // Former inactive « Paramètres » item: now the evening-theme switch.
+    { icon: theme === 'soiree' ? 'sun' : 'moon', label: 'Mode soirée', meta: theme === 'soiree' ? 'Activé · thème sombre et doré' : 'Désactivé · thème clair', onSelect: toggleTheme, switchOn: theme === 'soiree' },
   ]
-  return <><PageTitle eyebrow="Votre espace personnel" title="Mon profil" /><section className="profile-header content-card"><div className="large-avatar">{initial}</div><div><h2>{profile?.full_name || 'Votre profil'}</h2><p>{user?.email}</p><button className="text-button">Modifier mon profil <Icon name="arrow" size={14} /></button></div></section><div className="profile-menu content-card">{menuItems.map(({ icon, label, meta, page }) => <button key={label} onClick={() => { if (page) setActivePage(page) }}><span className="profile-menu-icon"><Icon name={icon} size={19} /></span><span><strong>{label}</strong><small>{meta}</small></span><Icon name="chevron" size={17} /></button>)}</div><button className="logout-button" onClick={signOut}>Se déconnecter</button></>
+  return <><PageTitle eyebrow="Votre espace personnel" title="Mon profil" /><section className="profile-header content-card"><div className="large-avatar">{initial}</div><div><h2>{profile?.full_name || 'Votre profil'}</h2><p>{user?.email}</p><button className="text-button">Modifier mon profil <Icon name="arrow" size={14} /></button></div></section><div className="profile-menu content-card">{menuItems.map(({ icon, label, meta, page, onSelect, switchOn }) => <button key={label} onClick={() => { if (onSelect) onSelect(); else if (page) setActivePage(page) }} {...(switchOn === undefined ? {} : { role: 'switch', 'aria-checked': switchOn, className: 'theme-switch-row' })}><span className="profile-menu-icon"><Icon name={icon} size={19} /></span><span><strong>{label}</strong><small>{meta}</small></span>{switchOn === undefined ? <Icon name="chevron" size={17} /> : <span className={`theme-switch ${switchOn ? 'is-on' : ''}`} aria-hidden="true" />}</button>)}</div><button className="logout-button" onClick={signOut}>Se déconnecter</button></>
 }
 
 export default App

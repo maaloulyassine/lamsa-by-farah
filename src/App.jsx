@@ -4,13 +4,13 @@ import { useAuth } from './context/useAuth'
 import { AuthScreen } from './pages/AuthPages'
 import { WeddingSetup } from './pages/WeddingSetup'
 import { PlanningPage } from './components/planner/PlanningPage'
-import { listWeddingTasks } from './services/tasksService'
+import { listWeddingTasks, updateTask } from './services/tasksService'
 import { BudgetPage } from './components/budget/BudgetPage'
 import { ProvidersPage } from './components/providers/ProvidersPage'
 import { FavoritesPage } from './components/favorites/FavoritesPage'
 import { MyRequestsPage } from './components/contact/MyRequestsPage'
 import { AdminRequestsPage } from './components/admin/AdminRequestsPage'
-import { formatTnd } from './utils/format'
+import { formatTnd, mutationErrorMessage } from './utils/format'
 import { Wordmark } from './components/ui/Wordmark'
 import { Flourish } from './components/ui/Flourish'
 import { WelcomeCarousel } from './components/welcome/WelcomeCarousel'
@@ -132,6 +132,32 @@ function Dashboard({ setActivePage, wedding, profile }) {
   const [tasks, setTasks] = useState([])
   const [tasksLoading, setTasksLoading] = useState(true)
   const [tasksError, setTasksError] = useState('')
+  const [success, setSuccess] = useState('')
+  const [toggleError, setToggleError] = useState('')
+  const [pendingTaskId, setPendingTaskId] = useState(null)
+
+  // Auto-dismiss the success toast (same 4 s as Planning).
+  useEffect(() => {
+    if (!success) return undefined
+    const id = setTimeout(() => setSuccess(''), 4000)
+    return () => clearTimeout(id)
+  }, [success])
+
+  // Same status update as Planning's check box; done tasks then drop out of the upcoming list.
+  const toggleTask = async (task) => {
+    if (pendingTaskId) return
+    const status = task.status === 'done' ? 'todo' : 'done'
+    setPendingTaskId(task.id)
+    setToggleError('')
+    const { error: updateError } = await updateTask(task.id, wedding.id, { status })
+    setPendingTaskId(null)
+    if (updateError) {
+      setToggleError(mutationErrorMessage(updateError, 'Impossible d’enregistrer le statut. Réessayez.'))
+      return
+    }
+    setTasks((current) => current.map((item) => (item.id === task.id ? { ...item, status } : item)))
+    setSuccess('Le statut a été enregistré.')
+  }
 
   useEffect(() => {
     const id = setInterval(() => setDashboardNow(new Date()), 60_000)
@@ -157,15 +183,17 @@ function Dashboard({ setActivePage, wedding, profile }) {
     : 'Date à définir'
   const initials = greetingName[0]?.toUpperCase() || 'F'
   return <><PageTitle eyebrow={new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(dashboardNow)} title={<>Bonjour {greetingName} <span className="wave">👋</span></>} action={<button className="profile-chip" onClick={() => setActivePage('profile')}><span>{initials}</span><b>{greetingName.split(' ')[0]}</b><Icon name="chevron" size={14} /></button>} /><p className="intro-copy">Prête à organiser le plus beau jour de votre vie ?</p>
+    {success && <p className="success-banner" role="status">{success}</p>}
+    {toggleError && <div className="error-banner" role="alert"><span>{toggleError}</span><button onClick={() => setToggleError('')} aria-label="Fermer">×</button></div>}
     <section className="hero-card"><div className="hero-image" /><div className="hero-overlay"><span className="pill light">Votre espace mariage</span><h2>Rêvez grand.<br /><em>On s’occupe du reste.</em></h2><button className="ghost-button" onClick={() => setActivePage('services')}>Découvrir les services <Icon name="arrow" size={15} /></button></div></section>
     <div className="quick-grid">{categories.map(([label, icon]) => <button key={label} className="quick-card" onClick={() => setActivePage('services')}><span className="quick-icon"><Icon name={icon} size={23} /></span><span>{label}</span></button>)}</div>
     <div className="dashboard-grid"><section className="content-card countdown-card"><div className="card-heading"><div><p className="eyebrow">Le grand jour</p><h2>{weddingDateLabel}</h2></div><span className="calendar-badge"><Icon name="calendar" size={19} /></span></div><div className="countdown"><div><strong>{weddingDate ? Math.max(0, Math.ceil((weddingDate - dashboardNow) / 86400000)) : '--'}</strong><span>jours</span></div><b>·</b><div><strong>08</strong><span>heures</span></div><b>·</b><div><strong>42</strong><span>minutes</span></div></div><div className="progress-label"><span>Votre préparation</span><b>42%</b></div><div className="progress"><span style={{ width: '42%' }} /></div><button className="text-button" onClick={() => setActivePage('planning')}>Voir mon planning <Icon name="arrow" size={14} /></button></section>
-      <section className="content-card tasks-card"><div className="card-heading"><div><p className="eyebrow">À ne pas oublier</p><h2>Prochaines tâches</h2></div><button className="round-button" onClick={() => setActivePage('planning')}><Icon name="plus" size={17} /></button></div>{tasksLoading ? <div className="loading-state">Chargement...</div> : tasksError ? <div className="error-banner">{tasksError}</div> : upcoming.length === 0 ? <div className="empty-day"><p>Aucune tâche à venir</p><button className="text-button" onClick={() => setActivePage('planning')}>Générer le planning</button></div> : <div className="task-list compact">{upcoming.map((task) => <TaskRow key={task.id} task={{ ...task, date: task.task_date }} />)}</div>}<button className="text-button" onClick={() => setActivePage('planning')}>Voir toutes les tâches <Icon name="arrow" size={14} /></button></section></div>
+      <section className="content-card tasks-card"><div className="card-heading"><div><p className="eyebrow">À ne pas oublier</p><h2>Prochaines tâches</h2></div><button className="round-button" onClick={() => setActivePage('planning')}><Icon name="plus" size={17} /></button></div>{tasksLoading ? <div className="loading-state">Chargement...</div> : tasksError ? <div className="error-banner">{tasksError}</div> : upcoming.length === 0 ? <div className="empty-day"><p>Aucune tâche à venir</p><button className="text-button" onClick={() => setActivePage('planning')}>Générer le planning</button></div> : <div className="task-list compact">{upcoming.map((task) => <TaskRow key={task.id} task={{ ...task, date: task.task_date }} onToggle={() => toggleTask(task)} disabled={pendingTaskId === task.id} />)}</div>}<button className="text-button" onClick={() => setActivePage('planning')}>Voir toutes les tâches <Icon name="arrow" size={14} /></button></section></div>
   </>
 }
 
-function TaskRow({ task, onToggle }) {
-  return <div className={`task-row ${task.status === 'done' ? 'completed' : ''}`}><button className="check-button" onClick={onToggle} aria-label={`Marquer ${task.title}`}>{task.status === 'done' && <Icon name="check" size={14} />}</button><span className="task-icon"><Icon name={task.icon || 'check'} size={17} /></span><div><strong>{task.title}</strong><small>{new Date(`${task.date}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</small></div></div>
+function TaskRow({ task, onToggle, disabled = false }) {
+  return <div className={`task-row ${task.status === 'done' ? 'completed' : ''}`}><button className="check-button" onClick={onToggle} disabled={disabled} aria-label={`Marquer ${task.title} comme ${task.status === 'done' ? 'à faire' : 'terminée'}`}>{task.status === 'done' && <Icon name="check" size={14} />}</button><span className="task-icon"><Icon name={task.icon || 'check'} size={17} /></span><div><strong>{task.title}</strong><small>{new Date(`${task.date}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</small></div></div>
 }
 
 function Profile({ setActivePage }) {

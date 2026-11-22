@@ -40,7 +40,7 @@ The application requires HTTPS for service worker and install behavior.
 
 ## Deployment
 
-The GitHub Pages workflow builds with Node.js `20.19.0` and deploys `dist/`.
+The GitHub Pages workflow builds with Node.js `22.12.0` and deploys `dist/`.
 
 In the GitHub repository settings:
 

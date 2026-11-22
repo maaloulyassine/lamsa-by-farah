@@ -104,7 +104,7 @@ Actual Phase 2 validation:
 - The manifest resolved `start_url`, `scope`, and `id` to `/lamsa-by-farah/` with `display: standalone`.
 - DM Sans and Playfair Display font variants rendered without visual regression.
 - Phase 1 navigation and layout passed manual smoke testing without regressions.
-- The installed environment emitted a Node compatibility warning with Node `20.15.0`; Vite requires Node `20.19+` or `22.12+`. GitHub Actions uses Node `20.19.0`.
+- The installed environment emitted a Node compatibility warning with Node `20.15.0`; Vite requires Node `20.19+` or `22.12+`. GitHub Actions used Node `20.19.0` at the time (Node `22.12.0` since Phase 5b).
 
 **Next phase: Phase 5 — Quality and delivery (not started).**
 
@@ -127,7 +127,7 @@ The MVP is deployed and publicly accessible.
 
 **Phase 5 fixes needed before considering the MVP "polished":**
 - English auth error messages (Supabase raw text shown to users)
-- Node 20 → Node 24 GitHub Actions upgrade (non-blocking warning)
+- Node 20 → Node 24 GitHub Actions upgrade — done in Phase 5b
 - `anon` and `authenticated` still hold TRUNCATE from project defaults (not exploitable via API, but cleaner to revoke)
 - `service_role` lacks full grants on the public tables (no current code uses it; will matter if admin scripts are added)
 - Future tables will need their own grant migration — cloud does not grant automatically (unlike local Supabase)
@@ -140,7 +140,7 @@ The MVP is deployed and publicly accessible.
 - The static-only service worker is generated into `dist/`, uses cache `lamsa-v1`, cache-first handling for precached URLs, network-only handling for every other request, and cached `index.html` navigation fallback.
 - `VITE_BASE_PATH` normalizes to a leading and trailing `/` and defaults to `/` for local builds.
 - GitHub Pages builds use `/lamsa-by-farah/` as the repository base.
-- GitHub Actions uses Node `20.19.0`, Pages permissions, and `cancel-in-progress: false`.
+- GitHub Actions builds with Node `22.12.0` (actions on the node24 runtime since Phase 5b), Pages permissions, and `cancel-in-progress: false`.
 - Android and iPhone installation instructions are included in the README.
 
 ### Phase 3 — Supabase — completed

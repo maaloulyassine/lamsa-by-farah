@@ -128,8 +128,8 @@ The MVP is deployed and publicly accessible.
 **Phase 5 fixes needed before considering the MVP "polished":**
 - English auth error messages (Supabase raw text shown to users)
 - Node 20 → Node 24 GitHub Actions upgrade — done in Phase 5b
-- `anon` and `authenticated` still hold TRUNCATE from project defaults (not exploitable via API, but cleaner to revoke)
-- `service_role` lacks full grants on the public tables (no current code uses it; will matter if admin scripts are added)
+- `anon` and `authenticated` still hold TRUNCATE from project defaults — resolved in Phase 5c (migration 0008)
+- `service_role` lacks full grants on the public tables — resolved in Phase 5c (migration 0008)
 - Future tables will need their own grant migration — cloud does not grant automatically (unlike local Supabase)
 
 ## Remaining work and future phases
@@ -228,6 +228,10 @@ The MVP is deployed and publicly accessible.
 - 7c (polish): dashboard hero uses the self-hosted `images/welcome/slide-4.webp` (no images.unsplash.com reference left in `src/` or `dist/`); `src/components/ui/Flourish.jsx` under the six page titles; hover lift (pointer devices only) on provider cards, task / planner / expense / budget rows and request cards; shadow tokens `--shadow-sm/md/lg/xl`; global 2 px terracotta `:focus-visible` rings (3 `outline: none/0` rules removed); budget ring animates via a registered `--percent` (`@property`, 0.8 s) applied one frame after mount; success messages are fixed top-right toasts sliding in (300 ms) and auto-dismissed by timers (Planning gained its missing 4 s timer); tablet layout fixes (calendar columns can shrink, budget overview stacks 651–1100 px, planning columns 1.15fr/1fr, providers 2 columns at 520–650 px, modals 500 px). Reduced motion disables the toast, ring and lift animations.
 
 ### Phase 5 — Quality and delivery
+
+- 5a (French auth errors): complete. 5b (GitHub Actions node24 runtime, Node 22.12 build): complete.
+- 5c (grants cleanup): migration `20261122000008_phase5c_grants_cleanup.sql` revokes TRUNCATE from `anon`/`authenticated` on every public table and grants `service_role` SELECT/INSERT/UPDATE/DELETE on all public tables (+ sequences, + EXECUTE on `set_wedding_plan(uuid)`). Applied locally and on the cloud. Reversal restores the recorded pre-5c cloud privileges. `anon`/`authenticated` still hold REFERENCES and TRIGGER from the project defaults (not usable through PostgREST; not in scope).
+- 5d (README) and 5e (known issues + final tag): pending.
 
 - Run focused functional, responsive, accessibility, security, and RLS validation.
 - Test Android Chrome and iPhone Safari when available.

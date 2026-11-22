@@ -580,3 +580,14 @@ h3 { font-size: 14px; margin-bottom: 0; }
 /* Empty states: a soft halo of pattern behind the message */
 .empty-state, .empty-day { position: relative; isolation: isolate; }
 .empty-state::before, .empty-day::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: var(--pattern-zellige) center / 56px 56px repeat; opacity: var(--pattern-strength); -webkit-mask-image: radial-gradient(circle at center, #000 0%, transparent 65%); mask-image: radial-gradient(circle at center, #000 0%, transparent 65%); }
+
+/* ===== Lot 2b — card → detail morph (View Transitions API) ===== */
+::view-transition-group(provider-cover) { animation-duration: 450ms; animation-timing-function: cubic-bezier(.2, .8, .2, 1); overflow: hidden; border-radius: 16px; }
+::view-transition-old(provider-cover), ::view-transition-new(provider-cover) { height: 100%; width: 100%; object-fit: cover; }
+::view-transition-old(root) { animation: 260ms ease both vtFadeOut; }
+::view-transition-new(root) { animation: 320ms ease 60ms both vtFadeIn; }
+@keyframes vtFadeOut { to { opacity: 0; } }
+@keyframes vtFadeIn { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+}

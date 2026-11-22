@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { listFavoriteProviders } from '../../services/favoritesService'
 import { ProviderCard } from '../providers/ProviderCard'
 import { ProviderDetail } from '../providers/ProviderDetail'
+import { runViewTransition } from '../../utils/viewTransition'
 import { useFavoriteToggle } from './useFavoriteToggle'
 import { Flourish } from '../ui/Flourish'
 
@@ -29,6 +30,7 @@ export function FavoritesPage({ wedding, userId, onDiscover }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [selectedId, setSelectedId] = useState(null)
+  const [morphId, setMorphId] = useState(null)
   const [success, setSuccess] = useState('')
   const lastOpened = useRef(null)
   const { favoriteIds, setFavoriteIds, pendingIds, toggleFavorite, toggleError, clearToggleError } = useFavoriteToggle()
@@ -86,8 +88,9 @@ export function FavoritesPage({ wedding, userId, onDiscover }) {
           wedding={wedding}
           userId={userId}
           backLabel="Retour à mes favoris"
-          onBack={() => setSelectedId(null)}
+          onBack={() => runViewTransition(() => setSelectedId(null))}
           onSent={() => setSuccess(CONTACT_SUCCESS)}
+          preview={providers.find((provider) => provider.id === selectedId) || null}
           isFavorite={favoriteIds.has(selectedId)}
           favoritePending={pendingIds.has(selectedId)}
           onToggleFavorite={toggleFavorite}
@@ -114,7 +117,8 @@ export function FavoritesPage({ wedding, userId, onDiscover }) {
           <ProviderCard
             key={provider.id}
             provider={provider}
-            onOpen={(id) => { lastOpened.current = id; setSelectedId(id); window.scrollTo(0, 0) }}
+            onOpen={(id) => { lastOpened.current = id; runViewTransition(() => { setSelectedId(id); window.scrollTo(0, 0) }, () => setMorphId(id)) }}
+            morph={provider.id === morphId}
             isFavorite
             favoritePending={pendingIds.has(provider.id)}
             onToggleFavorite={toggleFavorite}

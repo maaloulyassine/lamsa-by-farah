@@ -4,6 +4,7 @@ import { listFilterOptions, listProviders } from '../../services/providersServic
 import { useFavoriteToggle } from '../favorites/useFavoriteToggle'
 import { ProviderCard } from './ProviderCard'
 import { ProviderDetail } from './ProviderDetail'
+import { runViewTransition } from '../../utils/viewTransition'
 import { ProviderFilters } from './ProviderFilters'
 import { Flourish } from '../ui/Flourish'
 
@@ -38,6 +39,7 @@ export function ProvidersPage({ wedding, userId }) {
   const [listLoading, setListLoading] = useState(true)
   const [listError, setListError] = useState('')
   const [selectedId, setSelectedId] = useState(null)
+  const [morphId, setMorphId] = useState(null) // card whose cover morphs into / out of the detail
   const [success, setSuccess] = useState('')
   const requestId = useRef(0)
   const lastOpened = useRef(null)
@@ -141,9 +143,9 @@ export function ProvidersPage({ wedding, userId }) {
   const openProvider = (id) => {
     lastOpened.current = id
     listScrollY.current = window.scrollY
-    setSelectedId(id)
-    window.scrollTo(0, 0)
+    runViewTransition(() => { setSelectedId(id); window.scrollTo(0, 0) }, () => setMorphId(id))
   }
+  const closeProvider = () => runViewTransition(() => setSelectedId(null))
 
   const toast = (
     <>
@@ -162,8 +164,9 @@ export function ProvidersPage({ wedding, userId }) {
           providerId={selectedId}
           wedding={wedding}
           userId={userId}
-          onBack={() => setSelectedId(null)}
+          onBack={closeProvider}
           onSent={() => setSuccess(CONTACT_SUCCESS)}
+          preview={providers.find((provider) => provider.id === selectedId) || null}
           {...favoriteProps(selectedId)}
         />
       </>
@@ -185,7 +188,7 @@ export function ProvidersPage({ wedding, userId }) {
         </div>
       )
   } else {
-    listContent = <div className="provider-grid">{visibleProviders.map((provider) => <ProviderCard key={provider.id} provider={provider} onOpen={openProvider} {...favoriteProps(provider.id)} />)}</div>
+    listContent = <div className="provider-grid">{visibleProviders.map((provider) => <ProviderCard key={provider.id} provider={provider} onOpen={openProvider} morph={provider.id === morphId} {...favoriteProps(provider.id)} />)}</div>
   }
 
   return (

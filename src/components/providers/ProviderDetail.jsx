@@ -21,7 +21,7 @@ function externalUrl(url) {
   return /^https?:\/\//i.test(url) ? url : `https://${url}`
 }
 
-export function ProviderDetail({ providerId, wedding, userId, onBack, onSent, backLabel = 'Retour au catalogue', isFavorite = false, favoritePending = false, onToggleFavorite }) {
+export function ProviderDetail({ providerId, wedding, userId, onBack, onSent, backLabel = 'Retour au catalogue', isFavorite = false, favoritePending = false, onToggleFavorite, preview = null }) {
   const [provider, setProvider] = useState(null)
   const [status, setStatus] = useState('loading') // loading | error | notfound | ready
   const [contactOpen, setContactOpen] = useState(false)
@@ -49,7 +49,18 @@ export function ProviderDetail({ providerId, wedding, userId, onBack, onSent, ba
   const backButton = <button type="button" className="secondary-button provider-back" onClick={onBack}>← {backLabel}</button>
 
   if (status === 'loading') {
-    return <section className="provider-detail">{backButton}<div className="provider-detail-skeleton" aria-busy="true" aria-label="Chargement du prestataire"><span /><span /><span /></div></section>
+    // With the card's data (preview) the cover is shown at once while the full profile loads.
+    return (
+      <section className="provider-detail">
+        {backButton}
+        {preview && (
+          <div className="provider-cover-wrap provider-detail-cover-wrap" style={{ viewTransitionName: 'provider-cover' }}>
+            <ProviderCover provider={preview} iconSize={64} className="provider-detail-cover" />
+          </div>
+        )}
+        <div className="provider-detail-skeleton" aria-busy="true" aria-label="Chargement du prestataire"><span /><span /><span /></div>
+      </section>
+    )
   }
   if (status === 'error') {
     return (
@@ -75,7 +86,7 @@ export function ProviderDetail({ providerId, wedding, userId, onBack, onSent, ba
   return (
     <section className="provider-detail" aria-labelledby="provider-detail-title">
       {backButton}
-      <div className="provider-cover-wrap provider-detail-cover-wrap">
+      <div className="provider-cover-wrap provider-detail-cover-wrap" style={{ viewTransitionName: 'provider-cover' }}>
         <ProviderCover provider={provider} iconSize={64} className="provider-detail-cover" />
         {onToggleFavorite && (
           <FavoriteButton providerName={provider.name} isFavorite={isFavorite} pending={favoritePending} onToggle={() => onToggleFavorite(provider.id)} />

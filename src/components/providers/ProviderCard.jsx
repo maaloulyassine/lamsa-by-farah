@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Burst } from '../ui/Burst'
 import { getCategoryImage } from '../../utils/categoryImages'
 import { formatRating, formatTndRange } from '../../utils/format'
@@ -28,6 +28,13 @@ export function CategoryIcon({ name, size = 18 }) {
 export function ProviderCover({ provider, iconSize = 40, className = '' }) {
   const illustration = getCategoryImage(provider.category?.slug)
   const [status, setStatus] = useState('loading') // loading | loaded | failed
+  const imgRef = useRef(null)
+  // An illustration already in the browser cache is shown at once (no gradient flash),
+  // which also lets the card → detail morph capture the real photo.
+  useLayoutEffect(() => {
+    const img = imgRef.current
+    if (img && img.complete && img.naturalWidth > 0) setStatus('loaded')
+  }, [])
   if (provider.cover_image_url) {
     return <div className={`provider-cover ${className}`}><img src={provider.cover_image_url} alt="" loading="lazy" /></div>
   }
@@ -37,7 +44,7 @@ export function ProviderCover({ provider, iconSize = 40, className = '' }) {
     return (
       <div className={`provider-cover provider-cover-illustration provider-cover-placeholder ${status === 'loaded' ? 'is-loaded' : ''} ${className}`}>
         {status !== 'loaded' && <CategoryIcon name={provider.category?.icon} size={iconSize} />}
-        <img src={illustration} alt="" loading="lazy" onLoad={() => setStatus('loaded')} onError={() => setStatus('failed')} />
+        <img ref={imgRef} src={illustration} alt="" loading="lazy" onLoad={() => setStatus('loaded')} onError={() => setStatus('failed')} />
         {status === 'loaded' && (
           <>
             <span className="provider-illustration-badge">Photo d'illustration</span>
@@ -86,11 +93,11 @@ export function FavoriteButton({ providerName, isFavorite, pending, onToggle }) 
   )
 }
 
-export function ProviderCard({ provider, onOpen, isFavorite = false, favoritePending = false, onToggleFavorite }) {
+export function ProviderCard({ provider, onOpen, isFavorite = false, favoritePending = false, onToggleFavorite, morph = false }) {
   const location = [provider.city, provider.governorate?.name].filter(Boolean).join(', ')
   return (
     <article className="provider-card" data-provider-id={provider.id}>
-      <div className="provider-cover-wrap">
+      <div className="provider-cover-wrap" style={morph ? { viewTransitionName: 'provider-cover' } : undefined}>
         <ProviderCover provider={provider} />
         {onToggleFavorite && (
           <FavoriteButton providerName={provider.name} isFavorite={isFavorite} pending={favoritePending} onToggle={() => onToggleFavorite(provider.id)} />

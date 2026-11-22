@@ -17,6 +17,8 @@ import { Burst } from './components/ui/Burst'
 import { RollingNumber } from './components/ui/RollingNumber'
 import { toggleTheme, useTheme } from './utils/theme'
 import { NotificationsBell } from './components/notifications/NotificationsBell'
+import { EditProjectPage } from './components/profile/EditProjectPage'
+import { EditProfilePage } from './components/profile/EditProfilePage'
 import { WelcomeCarousel } from './components/welcome/WelcomeCarousel'
 
 const categories = [
@@ -94,7 +96,7 @@ function App() {
           <NavItem icon="wallet" label="Mon budget" active={activePage === 'budget'} onClick={() => { setActivePage('budget'); setMenuOpen(false) }} />
           <NavItem icon="building" label="Trouver un service" active={activePage === 'services'} onClick={() => { setActivePage('services'); setMenuOpen(false) }} />
         </nav>
-        <div className="side-bottom"><NavItem icon="user" label="Mon profil" active={activePage === 'profile' || activePage === 'requests' || activePage === 'admin-requests'} onClick={() => { setActivePage('profile'); setMenuOpen(false) }} /><p>Votre mariage,<br /><strong>votre signature.</strong></p></div>
+        <div className="side-bottom"><NavItem icon="user" label="Mon profil" active={activePage === 'profile' || activePage === 'requests' || activePage === 'admin-requests' || activePage === 'edit-project' || activePage === 'edit-profile'} onClick={() => { setActivePage('profile'); setMenuOpen(false) }} /><p>Votre mariage,<br /><strong>votre signature.</strong></p></div>
       </aside>
       <div className="main-column">
         <header className="topbar">
@@ -111,6 +113,8 @@ function App() {
           {activePage === 'profile' && <Profile setActivePage={setActivePage} />}
           {activePage === 'requests' && <MyRequestsPage onBack={() => setActivePage('profile')} onDiscover={() => setActivePage('services')} />}
           {activePage === 'admin-requests' && isAdmin && <AdminRequestsPage onBack={() => setActivePage('profile')} />}
+          {activePage === 'edit-project' && <EditProjectPage onBack={() => setActivePage('profile')} onNavigate={setActivePage} />}
+          {activePage === 'edit-profile' && <EditProfilePage onBack={() => setActivePage('profile')} />}
         </main>
       </div>
     </div>
@@ -234,9 +238,9 @@ function Profile({ setActivePage }) {
   const weddingDate = wedding?.wedding_date
     ? new Date(`${wedding.wedding_date}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
     : 'Projet à compléter'
-  // Explicit action per item (no index-based dispatch). `page: null` = inactive placeholder (see Known issues).
+  // Explicit action per item (no index-based dispatch).
   const menuItems = [
-    { icon: 'calendar', label: 'Mon projet de mariage', meta: weddingDate, page: null },
+    { icon: 'calendar', label: 'Mon projet de mariage', meta: weddingDate, page: 'edit-project' },
     { icon: 'wallet', label: 'Mon budget', meta: formatTnd(wedding?.total_budget), page: 'budget' },
     { icon: 'heart', label: 'Mes services favoris', meta: 'Vos prestataires enregistrés', page: 'favorites' },
     { icon: 'mail', label: 'Mes demandes de contact', meta: 'Suivi de vos demandes aux prestataires', page: 'requests' },
@@ -244,7 +248,7 @@ function Profile({ setActivePage }) {
     // Former inactive « Paramètres » item: now the evening-theme switch.
     { icon: theme === 'soiree' ? 'sun' : 'moon', label: 'Mode soirée', meta: theme === 'soiree' ? 'Activé · thème sombre et doré' : 'Désactivé · thème clair', onSelect: toggleTheme, switchOn: theme === 'soiree' },
   ]
-  return <><PageTitle eyebrow="Votre espace personnel" title="Mon profil" /><section className="profile-header content-card"><div className="large-avatar">{initial}</div><div><h2>{profile?.full_name || 'Votre profil'}</h2><p>{user?.email}</p><button className="text-button">Modifier mon profil <Icon name="arrow" size={14} /></button></div></section><div className="profile-menu content-card">{menuItems.map(({ icon, label, meta, page, onSelect, switchOn }) => <button key={label} onClick={() => { if (onSelect) onSelect(); else if (page) setActivePage(page) }} {...(switchOn === undefined ? {} : { role: 'switch', 'aria-checked': switchOn, className: 'theme-switch-row' })}><span className="profile-menu-icon"><Icon name={icon} size={19} /></span><span><strong>{label}</strong><small>{meta}</small></span>{switchOn === undefined ? <Icon name="chevron" size={17} /> : <span className={`theme-switch ${switchOn ? 'is-on' : ''}`} aria-hidden="true" />}</button>)}</div><button className="logout-button" onClick={signOut}>Se déconnecter</button></>
+  return <><PageTitle eyebrow="Votre espace personnel" title="Mon profil" /><section className="profile-header content-card"><div className="large-avatar">{initial}</div><div><h2>{profile?.full_name || 'Votre profil'}</h2><p>{user?.email}</p><button className="text-button" onClick={() => setActivePage('edit-profile')}>Modifier mon profil <Icon name="arrow" size={14} /></button></div></section><div className="profile-menu content-card">{menuItems.map(({ icon, label, meta, page, onSelect, switchOn }) => <button key={label} onClick={() => { if (onSelect) onSelect(); else if (page) setActivePage(page) }} {...(switchOn === undefined ? {} : { role: 'switch', 'aria-checked': switchOn, className: 'theme-switch-row' })}><span className="profile-menu-icon"><Icon name={icon} size={19} /></span><span><strong>{label}</strong><small>{meta}</small></span>{switchOn === undefined ? <Icon name="chevron" size={17} /> : <span className={`theme-switch ${switchOn ? 'is-on' : ''}`} aria-hidden="true" />}</button>)}</div><button className="logout-button" onClick={signOut}>Se déconnecter</button></>
 }
 
 export default App

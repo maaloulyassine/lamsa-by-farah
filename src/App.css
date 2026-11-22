@@ -706,3 +706,14 @@ h3 { font-size: 14px; margin-bottom: 0; }
 @media (max-width: 650px) { .notif-panel { position: fixed; top: 64px; left: 12px; right: 12px; width: auto; } }
 @media (prefers-reduced-motion: reduce) { .notif-panel { animation: none; } }
 [data-theme="soiree"] .notif-badge { color: #1b1411; }
+
+/* ===== Lot 3b — « Mon projet de mariage » / « Modifier mon profil » ===== */
+.edit-project-page .page-title, .edit-profile-page .page-title { margin-top: 14px; }
+.project-form-card { max-width: 640px; margin-top: 18px; }
+.project-form-card .task-form { margin-top: 0; }
+.project-notice { max-width: 640px; margin-top: 16px; padding: 12px 14px; border: 1px solid var(--line); border-left: 3px solid var(--champagne); border-radius: 12px; background: rgba(255, 255, 255, .5); color: var(--ink); font-size: 13px; }
+.project-notice p { margin: 0 0 6px; }
+.task-form input[readonly] { background: transparent; color: var(--muted); }
+.field-hint { margin-top: -6px; color: var(--muted); font-size: 11px; }
+[data-theme="soiree"] .project-notice { background: rgba(255, 240, 225, .05); }
+[data-theme="soiree"] .task-form input[readonly] { background: transparent; }

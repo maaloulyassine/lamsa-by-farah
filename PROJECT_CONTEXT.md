@@ -271,7 +271,6 @@ The MVP is deployed and publicly accessible.
 - **Price and rating filters hidden** — real pricing and review data has not been collected yet. The schema already supports them (`price_from`, `price_to`, `rating`, `review_count`); they will be re-enabled when real data exists.
 - **Partial coverage** — providers in 5 main governorates (Sousse 49, Monastir 42, Tunis 36, Bizerte 32, Nabeul 28) plus 2 in Ariana; the remaining 18 of 24 governorates are not covered yet. More providers can be added with the same seed pattern.
 - **Dashboard quick-tile categories are hardcoded** Phase 1 tuples in `App.jsx` (cosmetic).
-- **2 inactive Profile buttons** — « Mon projet de mariage » and the header link « Modifier mon profil » have no screen yet (spec §11 « Aucun bouton principal inactif » is partially violated). « Paramètres » became the « Mode soirée » switch in v1.5.0.
 - **Dashboard budget summary card** (spec §4.3) — deferred; the budget is only shown on Mon budget.
 - **Favorite button double announcement** — the heart changes both `aria-pressed` and its `aria-label` (« Ajouter aux favoris » / « Retirer des favoris »); some screen readers announce the state twice. A fixed label with `aria-pressed` only would be cleaner.
 - **Native `window.confirm` for deletions** (tasks, expenses) — to be replaced by a styled confirmation modal.
@@ -308,6 +307,8 @@ The MVP is deployed and publicly accessible.
 - Broken Vite 8 / rolldown production build → Vite 7 (`7d42dbe`); local Node 20.15 → 20.19 / 22.12.
 - Hard-coded Dashboard values (« 08 heures », « 42 minutes », « Votre préparation 42% ») → computed from the wedding date and the tasks (v1.4.0).
 - Pale light-mode texts (`--muted` #8c7c70, `--faint` #b7a99e, rating gold, small terracotta links, « Supprimer », « Se déconnecter ») below WCAG AA → darker shades of the same hues; 843 → 0 failing text elements on 12 screens (v1.5.1).
+- Inactive Profile buttons → « Paramètres » became the « Mode soirée » switch (v1.5.0); « Mon projet de mariage » and « Modifier mon profil » open edit screens (lot 3b). No inactive button left.
+- Inactive top-bar bell with a permanent dot → notifications panel (lot 3a).
 - Inactive Dashboard task check boxes (`TaskRow` rendered without `onToggle` since Phase 4a) → wired to the same status update as Planning, with toast and error banner (v1.3.1).
 - Unused packages (`@rolldown/binding-win32-x64-msvc` from the Vite 8 period, `@types/react`, `@types/react-dom`, the explicit oxlint Windows binding) → removed.
 - Obsolete Phase 1 notes (local-state data reset on refresh, app not connected to Supabase / PWA, 4.5 ★ filter note on the 20 demo providers) → no longer apply.
